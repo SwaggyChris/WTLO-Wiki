@@ -1,0 +1,517 @@
+/* --- Center Page Wrapper --- */
+.centerPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    position: relative;
+}
+
+/* --- Back Link Styles --- */
+.backLink {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #d1d5db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.backLink:hover {
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* For dark mode */
+@media (prefers-color-scheme: dark) {
+    .backLink {
+        color: #9ca3af;
+    }
+    
+    .backLink:hover {
+        color: #ffffff;
+    }
+}
+
+/* --- Sidebar Menu Styles --- */
+.sidebarMenu {
+    position: absolute;
+    width: 200px;
+    max-height: 90vh;
+    margin-right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    font-size: 1em;
+    flex-shrink: 0;
+    z-index: 1001;
+}
+
+.sidebarHeader {
+    cursor: move;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+.sidebarHeader h3 {
+    margin: 0;
+    color: #b1b1b1;
+    font-size: 1.2em;
+}
+
+.sidebarContent {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.sidebarContent a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebarContent a:hover {
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
+.sidebarContent a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* --- PDA Container & Map --- */
+.pdaContainer {
+    position: relative;
+    width: 90vw;
+    max-width: 1200px;
+    height: auto;
+    aspect-ratio: 1200 / 750;
+    max-height: 90vh;
+}
+
+.pdaFrame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.pdaScreen {
+    position: absolute;
+    top: calc(16.8% - 0.3px);
+    left: 13.0%;
+    width: 75.6%;
+    height: 70.3%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+}
+
+/* --- Zoom Slider Styles --- */
+.zoomSliderContainer {
+    position: absolute;
+    top: 20px;
+    left: -30px;
+    z-index: 1000;
+    padding: 55px 10px;
+}
+
+.zoomSliderWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Map Switch Button Styles --- */
+.mapSwitchContainer {
+    position: absolute;
+    top: 110px;
+    left: 10px;
+    z-index: 1000;
+    padding: 55px 10px;
+}
+
+.mapSwitchButton {
+    top: 40px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+    border: 2px solid #666;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.mapSwitchButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.mapSwitchButton:hover {
+    background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+    border-color: #777;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.mapSwitchButton:hover::before {
+    transform: translateX(100%);
+}
+
+.mapSwitchButton:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* --- Map Selection Menu Styles --- */
+.mapMenu {
+    position: absolute;
+    bottom: -70px;
+    left: 60px;
+    width: 200px;
+    max-height: 300px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 1001;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+.mapMenuHeader {
+    padding: 12px 15px;
+    border-bottom: 1px solid #444;
+    background-color: rgba(86, 86, 86, 0.946);
+}
+
+.mapMenuHeader h3 {
+    margin: 0;
+    color: #f1f1f1;
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mapMenuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mapMenuItem {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+}
+
+.mapMenuItem:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #8c8c8c;
+}
+
+.mapMenuItem:last-child {
+    border-bottom: none;
+}
+
+.mapMenuItem.active {
+    background-color: rgba(145, 145, 145, 0.3);
+    color: #eaeaea;
+    font-weight: 600;
+}
+
+.zoomSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    height: 6px;
+    background: linear-gradient(to right, #cfcece, #797979);
+    outline: none;
+    transform: rotate(-90deg);
+    margin: 20px 0px;
+    
+}
+
+.zoomSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 15px;
+    background: #858585;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.zoomSlider::-webkit-slider-thumb:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.zoomSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #000;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.zoomSlider::-moz-range-thumb:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.zoomLabels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- Realistic PDA Blinking Lights --- */
+.pdaLight {
+    position: absolute;
+    width: 0.8vmin;
+    height: 0.8vmin;
+    border-radius: 50%;
+    z-index: 3;
+    transition: opacity 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(0.3px);
+}
+
+.pdaLightRed {
+    background: radial-gradient(
+        circle at 30% 30%,
+        #ff8c7a 0%,
+        #ff471a 40%,
+        #cc1a00 100%
+    );
+    box-shadow: 
+        0 0 12px 6px rgba(255, 71, 26, 0.8),
+        0 0 24px 12px rgba(255, 71, 26, 0.5),
+        0 0 36px 18px rgba(255, 71, 26, 0.2),
+        inset 0 0 8px 2px rgba(255, 255, 255, 0.3);
+    top: 10.1%;
+    left: 80.3%;
+    animation: redGlowPulse 4s infinite alternate;
+}
+
+.pdaLightGreen {
+    background: radial-gradient(
+        circle at 30% 30%,
+        #aaff67 0%,
+        #76ff03 40%,
+        #4da800 100%
+    );
+    box-shadow: 
+        0 0 12px 6px rgba(118, 255, 3, 0.7),
+        0 0 24px 12px rgba(118, 255, 3, 0.4),
+        0 0 36px 18px rgba(118, 255, 3, 0.2),
+        inset 0 0 8px 2px rgba(255, 255, 255, 0.3);
+    top: 10.2%;
+    left: 82.9%;
+    animation: greenGlowPulse 3s infinite alternate;
+}
+
+/* Enhanced glow animations */
+@keyframes redGlowPulse {
+    0% {
+        box-shadow: 
+            0 0 10px 5px rgba(255, 71, 26, 0.7),
+            0 0 20px 10px rgba(255, 71, 26, 0.4),
+            0 0 30px 15px rgba(255, 71, 26, 0.15),
+            inset 0 0 6px 1px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 
+            0 0 14px 8px rgba(255, 71, 26, 0.85),
+            0 0 28px 16px rgba(255, 71, 26, 0.55),
+            0 0 42px 22px rgba(255, 71, 26, 0.25),
+            inset 0 0 10px 3px rgba(255, 255, 255, 0.4);
+    }
+}
+
+@keyframes greenGlowPulse {
+    0% {
+        box-shadow: 
+            0 0 10px 5px rgba(118, 255, 3, 0.6),
+            0 0 20px 10px rgba(118, 255, 3, 0.35),
+            0 0 30px 15px rgba(118, 255, 3, 0.15),
+            inset 0 0 6px 1px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 
+            0 0 14px 8px rgba(118, 255, 3, 0.75),
+            0 0 28px 16px rgba(118, 255, 3, 0.45),
+            0 0 42px 22px rgba(118, 255, 3, 0.25),
+            inset 0 0 10px 3px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Light reflection effects */
+.pdaLight::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    filter: blur(0.5px);
+}
+
+/* Subtight light bleed effect on PDA frame */
+.pdaContainer::before {
+    content: '';
+    position: absolute;
+    top: 9.5%;
+    left: 79.5%;
+    width: 4.5%;
+    height: 2%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 71, 26, 0.15) 0%,
+        rgba(255, 71, 26, 0.05) 40%,
+        transparent 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+
+.pdaContainer::after {
+    content: '';
+    position: absolute;
+    top: 9.5%;
+    left: 82%;
+    width: 4.5%;
+    height: 2%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(118, 255, 3, 0.15) 0%,
+        rgba(118, 255, 3, 0.05) 40%,
+        transparent 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* --- Leaflet Map & UI Styles --- */
+.leafletControl {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.leafletControlScaleLine {
+    border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    border-top: none !important;
+    color: white !important;
+    background-color: transparent !important;
+    text-shadow: 1px 1px 2px black;
+}
+
+.uiContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.uiContainer > div {
+    position: absolute;
+    pointer-events: auto;
+}
+
+.menuWindow {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-size: 0.9em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.menuWindow h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-align: center;
+    color: #ffffff;
+}

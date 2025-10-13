@@ -1,0 +1,32 @@
+export const menuGridItems = [
+  { id: 'premium', title: 'Premium status', icon: '/T_Common_Premium_Flat.png' },
+  { id: 'character', title: 'Character info', icon: '/T_PDA_Menu_CharacterInfo.png' },
+  { id: 'parameters', title: 'Character parameters', icon: '/T_PDA_Menu_CharacterParameters.png' },
+  { id: 'skills', title: 'Character skills', icon: '/T_PDA_Menu_Skills.png' },
+  { id: 'questlog', title: 'Quest log', icon: '/T_PDA_Menu_QuestLog.png' },
+  { id: 'map', title: 'Map', icon: '/T_PDA_Menu_Map.png' },
+  { id: 'mail', title: 'Mail', icon: '/T_PDA_Menu_Mail.png' },
+  { id: 'group', title: 'Group', icon: '/T_PDA_Menu_Group.png' },
+  { id: 'clan', title: 'Clan', icon: '/T_PDA_Menu_Clan.png' },
+  { id: 'faction', title: 'Faction', icon: '/T_PDA_Menu_Faction_None.png' },
+  { id: 'friends', title: 'Friends and enemies', icon: '/T_PDA_Menu_FriendsAndEnemies.png' },
+  { id: 'crafting', title: 'Craft recipes', icon: '/T_PDA_Menu_CraftRecipes.png' },
+  { id: 'achievements', title: 'Achievements', icon: '/T_PDA_Menu_Achievements.png' },
+  { id: 'settings', title: 'Settings', icon: '/T_PDA_Menu_Settings.png' },
+];
+
+export const menuItems = [
+  { id: 'character', title: 'Character Info', icon: '/T_PDA_Menu_CharacterInfo.png' },
+  { id: 'parameters', title: 'Parameters', icon: '/T_PDA_Menu_CharacterParameters.png' },
+  { id: 'skills', title: 'Skills', icon: '/T_PDA_Menu_Skills.png' },
+  { id: 'questlog', title: 'Quest Log', icon: '/T_PDA_Menu_QuestLog.png' },
+  { id: 'map', title: 'Map', icon: '/T_PDA_Menu_Map.png' },
+  { id: 'mail', title: 'Mail', icon: '/T_PDA_Menu_Mail.png' },
+  { id: 'group', title: 'Group', icon: '/T_PDA_Menu_Group.png' },
+  { id: 'clan', title: 'Clan', icon: '/T_PDA_Menu_Clan.png' },
+  { id: 'faction', title: 'Faction', icon: '/T_PDA_Menu_Faction_None.png' },
+  { id: 'friends', title: 'Friends & Enemies', icon: '/T_PDA_Menu_FriendsAndEnemies.png' },
+  { id: 'crafting', title: 'Crafting Recipes', icon: '/T_PDA_Menu_CraftRecipes.png' },
+  { id: 'achievements', title: 'Achievements', icon: '/T_PDA_Menu_Achievements.png' },
+  { id: 'settings', title: 'Settings', icon: '/T_PDA_Menu_Settings.png' },
+];
