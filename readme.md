@@ -1,6 +1,6 @@
-# WTLO Website
+# WTLO Wiki
 
-> A brief description of your project goes here.
+WTLO wiki is a website that presents in a dynamic and best visual aspect , all information about the game Will To Live Online. All info is accurate and tested in-game. 
 
 ## Getting Started
 
