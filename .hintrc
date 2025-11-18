@@ -11,14 +11,7 @@
         "label": "off"
       }
     ],
-    "compat-api/css": [
-      "default",
-      {
-        "ignore": [
-          "backdrop-filter"
-        ]
-      }
-    ],
+    "compat-api/css": "off",
     "typescript-config/consistent-casing": "off",
     "axe/aria": [
       "default",

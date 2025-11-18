@@ -20,6 +20,7 @@ export default function MapPage() {
   const mapInstanceRef = useRef<any | null>(null)
   const [zoomLevel, setZoomLevel] = useState(-2)
   const [showMapMenu, setShowMapMenu] = useState(false)
+  const [showLegendMenu, setShowLegendMenu] = useState(false)
   const [showWtlomenu, setShowWtlomenu] = useState(false)
   const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Default.png")
   const [pdaSkin, setPdaSkin] = useState<string>('/PDA.png')
@@ -33,24 +34,41 @@ export default function MapPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
-  // Available maps from the public/maps folder
+  // Legend marks state
+  const [legendMarks, setLegendMarks] = useState<Record<string, boolean>>({
+    'Monsters': true,
+    'NPCs': true,
+    'Anomalies': true,
+    'Teleports': true,
+    'Quest Item': true,
+    'Safe zones': true,
+    'Loot': true,
+    'Gasoline': true,
+    'Base': true,
+    'Plant': true,
+    'Artifacts': true,
+    'Radiation zone': true,
+    'Key': true,
+    'Event Area': true
+  })
+
+  // Available maps from the public/maps folder - REORDERED AND RENAMED
   const availableMaps = [
     { name: "Default Map", file: "maps/T_Data_Map_Default.png", displayName: "Default" },
     { name: "Camp", file: "maps/T_Data_Map_Camp.png", displayName: "Camp" },
-    { name: "Canyon", file: "maps/T_Data_Map_Canyon.png", displayName: "Canyon" },
-    { name: "Career", file: "maps/T_Data_Map_Career.png", displayName: "Foothills" },
-    { name: "Coast", file: "maps/T_Data_Map_Coast.png", displayName: "Coast" },
-    { name: "Confederation Camp", file: "maps/T_Data_Map_Confederation_Camp.png", displayName: "Confederation Camp" },
-    { name: "Dead Forest", file: "maps/T_Data_Map_Dead_Forest.png", displayName: "Dead Forest" },
-    { name: "Deadlands", file: "maps/T_Data_Map_Deadlands.png", displayName: "Exclusion Zone" },
-    { name: "Minaev Mine", file: "maps/T_Data_Map_Minaev_Mine.png", displayName: "Minaev Mine" },
-    { name: "PVP Arena", file: "maps/T_Data_Map_PVP_Arena.png", displayName: "PVP Arena" },
-    { name: "Solar City Hangar", file: "maps/T_Data_Map_Solar_City_Hangar.png", displayName: "MTE" },
-    { name: "Solar City Town", file: "maps/T_Data_Map_Solar_City_Town.png", displayName: "Solar City Town" },
+    { name: "Solenchy Town", file: "maps/T_Data_Map_Solar_City_Town.png", displayName: "Solenchy Town" },
     { name: "Solar City", file: "maps/T_Data_Map_Solar_City.png", displayName: "Solar City" },
-    { name: "Swamp", file: "maps/T_Data_Map_Swamp.png", displayName: "Swamp" },
-    { name: "Testing Ground", file: "maps/T_Data_Map_Testing_Ground.png", displayName: "Testing Ground" },
-    { name: "PvP Arena MTE", file: "maps/T_Data_PvP_Arena_MTE.png", displayName: "PvP Arena MTE" }
+    { name: "MTE", file: "maps/T_Data_Map_Solar_City_Hangar.png", displayName: "MTE" },
+    { name: "Minaev Mine", file: "maps/T_Data_Map_Minaev_Mine.png", displayName: "Minaev Mine" },
+    { name: "Swamps", file: "maps/T_Data_Map_Swamp.png", displayName: "Swamps" },
+    { name: "Dead Forest", file: "maps/T_Data_Map_Dead_Forest.png", displayName: "Dead Forest" },
+    { name: "PVP Arena", file: "maps/T_Data_Map_PVP_Arena.png", displayName: "PVP Arena" },
+    { name: "PVP Arena MTE", file: "maps/T_Data_PvP_Arena_MTE.png", displayName: "PVP Arena MTE" },
+    { name: "Exclusion Zone", file: "maps/T_Data_Map_Deadlands.png", displayName: "Exclusion Zone" },
+    { name: "Canyon", file: "maps/T_Data_Map_Canyon.png", displayName: "Canyon" },
+    { name: "Testing Grounds", file: "maps/T_Data_Map_Testing_Ground.png", displayName: "Testing Grounds" },
+    { name: "Coast", file: "maps/T_Data_Map_Coast.png", displayName: "Coast" },
+    { name: "Foothills", file: "maps/T_Data_Map_Career.png", displayName: "Foothills" }
   ]
 
   // Drag functionality for WTLO Menu
@@ -264,6 +282,21 @@ export default function MapPage() {
 
   const toggleMapMenu = () => {
     setShowMapMenu(!showMapMenu)
+    // Close legend menu if open
+    if (showLegendMenu) setShowLegendMenu(false)
+  }
+
+  const toggleLegendMenu = () => {
+    setShowLegendMenu(!showLegendMenu)
+    // Close map menu if open
+    if (showMapMenu) setShowMapMenu(false)
+  }
+
+  const handleLegendToggle = (markName: string) => {
+    setLegendMarks(prev => ({
+      ...prev,
+      [markName]: !prev[markName]
+    }))
   }
 
   const toggleWtlomenu = () => {
@@ -355,6 +388,45 @@ export default function MapPage() {
                       onClick={() => handleMapSwitch(map.file)}
                     >
                       {map.displayName}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Legend Marks Button Container */}
+          <div className={styles.legendContainer}>
+            <button
+              onClick={toggleLegendMenu}
+              className={styles.legendButton}
+            >
+              LEGEND
+            </button>
+            
+            {/* Legend Marks Menu */}
+            {showLegendMenu && (
+              <div className={styles.legendMenu}>
+                <div className={styles.legendMenuHeader}>
+                  <h3>Legend Marks</h3>
+                </div>
+                <ul className={styles.legendMenuList}>
+                  {Object.entries(legendMarks).map(([markName, isChecked]) => (
+                    <li
+                      key={markName}
+                      className={styles.legendMenuItem}
+                      onClick={() => handleLegendToggle(markName)}
+                    >
+                      <div 
+                        className={`${styles.legendCheckbox} ${isChecked ? styles.checked : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleLegendToggle(markName)
+                        }}
+                      />
+                      <span className={styles.legendLabel}>
+                        {markName}
+                      </span>
                     </li>
                   ))}
                 </ul>
