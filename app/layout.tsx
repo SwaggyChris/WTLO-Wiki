@@ -25,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <link rel="icon" href="/GameLogoWhite.png" />
         <style>{`
 html {
   font-family: ${roboto.style.fontFamily};

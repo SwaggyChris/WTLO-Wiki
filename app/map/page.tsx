@@ -1,11 +1,14 @@
 "use client"
 
+// Prevent Next.js from statically prerendering this page so client-only
+// code (which references window) won't run on the server during build.
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import L from "leaflet"
-import "leaflet-draw"
+// Leaflet is dynamically imported on the client. Avoid importing at top-level to prevent server-side window access.
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
 import styles from "./map.module.css"
@@ -14,11 +17,22 @@ export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null)
   const redLightRef = useRef<HTMLDivElement>(null)
   const greenLightRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
+  const mapInstanceRef = useRef<any | null>(null)
   const [zoomLevel, setZoomLevel] = useState(-2)
   const [showMapMenu, setShowMapMenu] = useState(false)
+  const [showWtlomenu, setShowWtlomenu] = useState(false)
   const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Default.png")
+  const [pdaSkin, setPdaSkin] = useState<string>('/PDA.png')
+  const [pdaOn, setPdaOn] = useState<boolean>(true)
+  const [pdaNatural, setPdaNatural] = useState<{w:number,h:number}|null>(null)
+  const [btnPressed, setBtnPressed] = useState(false)
+  const [skinDropdownOpen, setSkinDropdownOpen] = useState(true)
   
+  // Drag functionality states
+  const [wtloMenuPosition, setWtloMenuPosition] = useState({ x: 20, y: 100 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
   // Available maps from the public/maps folder
   const availableMaps = [
     { name: "Default Map", file: "maps/T_Data_Map_Default.png", displayName: "Default" },
@@ -39,19 +53,53 @@ export default function MapPage() {
     { name: "PvP Arena MTE", file: "maps/T_Data_PvP_Arena_MTE.png", displayName: "PvP Arena MTE" }
   ]
 
+  // Drag functionality for WTLO Menu
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStart({
+      x: e.clientX - wtloMenuPosition.x,
+      y: e.clientY - wtloMenuPosition.y
+    })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    setWtloMenuPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
   useEffect(() => {
     if (mapRef.current && typeof window !== "undefined" && !mapInstanceRef.current) {
-      // 1. Initialize the map
-      const map = L.map(mapRef.current, {
-        crs: L.CRS.Simple,
+      // Dynamically import Leaflet on the client only to avoid server-side window usage
+      ;(async () => {
+        const LeafletModule = await import("leaflet")
+        const Leaflet: any = (LeafletModule as any).default ?? LeafletModule
+
+        // Dynamically load leaflet-draw on the client only (it references window)
+        try {
+          await import("leaflet-draw")
+        } catch (e) {
+          // ignore if import fails in some environments
+          // console.warn("leaflet-draw load failed", e)
+        }
+
+        // 1. Initialize the map
+        const map = Leaflet.map(mapRef.current, {
+          crs: Leaflet.CRS.Simple,
         zoomControl: false,
         attributionControl: false,
         minZoom: -2,
         maxZoom: 2,
         wheelPxPerZoomLevel: 120,
         maxBoundsViscosity: 1.0, // Prevent dragging out of bounds
-      })
-      mapInstanceRef.current = map
+        })
+        mapInstanceRef.current = map
 
       // 2. Define image bounds and add overlay
       const imageWidth = 4096
@@ -61,24 +109,24 @@ export default function MapPage() {
         [imageHeight, imageWidth],
       ]
 
-      L.imageOverlay(`/${currentMap}`, bounds).addTo(map)
+  Leaflet.imageOverlay(`/${currentMap}`, bounds).addTo(map)
 
       // 3. Set initial view and fix boundaries
       map.setView([2048, 2048], -2)
       map.setMaxBounds(bounds)
 
       // 4. Grid overlay
-      const GridLayer = L.GridLayer.extend({
-        createTile: function (coords: L.Coords) {
+        const GridLayer = Leaflet.GridLayer.extend({
+        createTile: function (coords: any) {
           const tile = document.createElement("div")
           tile.style.outline = "1px solid rgba(255, 255, 255, 0.2)"
           return tile
         },
       })
-      new GridLayer().addTo(map)
+        new GridLayer().addTo(map)
 
       // 5. Update zoom level state when map zoom changes
-      map.on('zoom', () => {
+        map.on('zoom', () => {
         setZoomLevel(map.getZoom())
       })
 
@@ -163,11 +211,12 @@ export default function MapPage() {
           startGreenBlink();
         }, 500);
 
-        return () => {
-          if (redLightInterval) clearTimeout(redLightInterval);
-          if (greenLightInterval) clearTimeout(greenLightInterval);
+          return () => {
+            if (redLightInterval) clearTimeout(redLightInterval);
+            if (greenLightInterval) clearTimeout(greenLightInterval);
+          }
         }
-      }
+      })()
     }
     return () => {
       if (mapInstanceRef.current) {
@@ -187,24 +236,29 @@ export default function MapPage() {
 
   const handleMapSwitch = (mapFile: string) => {
     if (mapInstanceRef.current) {
-      // Clear existing layers
-      mapInstanceRef.current.eachLayer((layer) => {
-        if (layer instanceof L.ImageOverlay) {
-          mapInstanceRef.current?.removeLayer(layer)
-        }
-      })
-      
-      // Add new map
-      const imageWidth = 4096
-      const imageHeight = 4096
-      const bounds: L.LatLngBoundsExpression = [
-        [0, 0],
-        [imageHeight, imageWidth],
-      ]
-      
-      L.imageOverlay(`/${mapFile}`, bounds).addTo(mapInstanceRef.current)
-      setCurrentMap(mapFile)
-      setShowMapMenu(false)
+      ;(async () => {
+        const LeafletModule = await import("leaflet")
+        const Leaflet: any = (LeafletModule as any).default ?? LeafletModule
+
+        // Clear existing layers
+        mapInstanceRef.current!.eachLayer((layer: any) => {
+          if (Leaflet.ImageOverlay && layer instanceof Leaflet.ImageOverlay) {
+            mapInstanceRef.current?.removeLayer(layer)
+          }
+        })
+
+        // Add new map
+        const imageWidth = 4096
+        const imageHeight = 4096
+        const bounds: any = [
+          [0, 0],
+          [imageHeight, imageWidth],
+        ]
+
+        Leaflet.imageOverlay(`/${mapFile}`, bounds).addTo(mapInstanceRef.current as any)
+        setCurrentMap(mapFile)
+        setShowMapMenu(false)
+      })()
     }
   }
 
@@ -212,23 +266,42 @@ export default function MapPage() {
     setShowMapMenu(!showMapMenu)
   }
 
+  const toggleWtlomenu = () => {
+    setShowWtlomenu(!showWtlomenu)
+  }
+
   return (
     <div className={styles.centerPage}>
+      {/* Page Title at the very top, above PDA screen */}
+      <div className={styles.mapTitleWrapper}>
+        <h1 className={styles.mapTitle}>Interactive Map</h1>
+      </div>
+
       {/* Back to Main Page Link */}
       <Link href="/" className={styles.backLink}>
         <ArrowLeft size={16} />
         <span>Back to Main Page</span>
       </Link>
-      
+
       <div className={styles.pdaContainer}>
-        <Image
-          src="/PDA.png"
-          alt="PDA Frame"
-          width={1200}
-          height={750}
-          className={styles.pdaFrame}
-          priority
-        />
+          <Image
+            src={pdaSkin}
+            alt="PDA Frame"
+            width={1200}
+            height={750}
+            className={styles.pdaFrame}
+            priority
+            onLoadingComplete={(img) => {
+              // Next.js Image onLoadingComplete passes HTMLImageElement when not using loader
+              try {
+                const naturalWidth = (img as any).naturalWidth || 1200
+                const naturalHeight = (img as any).naturalHeight || 750
+                setPdaNatural({ w: naturalWidth, h: naturalHeight })
+              } catch (e) {
+                setPdaNatural({ w: 1200, h: 750 })
+              }
+            }}
+          />
         <div
           ref={redLightRef}
           className={`${styles.pdaLight} ${styles.pdaLightRed}`}
@@ -238,8 +311,8 @@ export default function MapPage() {
           className={`${styles.pdaLight} ${styles.pdaLightGreen}`}
         ></div>
 
-        <div className={styles.pdaScreen}>
-          <div ref={mapRef} className={styles.map}></div>
+        <div className={`${styles.pdaScreen} ${!pdaOn ? styles.pdaScreenOffVisible : ''}`}>
+          <div ref={mapRef} className={styles.map} aria-hidden={!pdaOn}></div>
           
           {/* Zoom Slider Container */}
           <div className={styles.zoomSliderContainer}>
@@ -290,8 +363,164 @@ export default function MapPage() {
           </div>
 
           <div className={styles.uiContainer}></div>
+          {/* Screen off overlay when PDA is powered down */}
+          {!pdaOn && (
+            <div className={styles.pdaScreenOff} role="status" aria-live="polite">
+              <div className={styles.pdaScreenOffInner}>
+                <div className={styles.pdaPowerIcon}>⏻</div>
+                <div className={styles.pdaOffText}>PDA Powered Off</div>
+              </div>
+            </div>
+          )}
         </div>
+        {/* Overlay button inside PDA frame mapped to coordinates; toggles PDA on/off */}
+        {/* Coordinates provided by user (pixels): x1=1790,y1=343,width=39,height=46 */}
+        {pdaNatural && (
+          (() => {
+            const x1 = 1790, y1 = 343, w = 39, h = 46
+            const leftPct = (x1 / pdaNatural.w) * 100
+            const topPct = (y1 / pdaNatural.h) * 100
+            const widthPct = (w / pdaNatural.w) * 100
+            const heightPct = (h / pdaNatural.h) * 100
+            return (
+              <button
+                className={`${styles.pdaFrameButton} ${btnPressed ? styles.pdaFrameButtonPressed : ''}`}
+                onClick={() => {
+                  setPdaOn(s => !s)
+                  setBtnPressed(true)
+                  setTimeout(() => setBtnPressed(false), 180)
+                }}
+                aria-pressed={!pdaOn}
+                aria-label={pdaOn ? 'Turn PDA off' : 'Turn PDA on'}
+                style={{ left: `${leftPct}%`, top: `${topPct}%`, width: `${widthPct}%`, height: `${heightPct}%` }}
+              />
+            )
+          })()
+        )}
       </div>
+
+    {/* Enhanced WTLO Menu with drag functionality */}
+    <div 
+      className={styles.wtloMenuContainer}
+      style={{
+        position: 'fixed',
+        left: `${wtloMenuPosition.x}px`,
+        top: `${wtloMenuPosition.y}px`,
+        cursor: isDragging ? 'grabbing' : 'default'
+      }}
+    >
+      <button 
+        className={styles.wtloMenuToggle} 
+        onClick={toggleWtlomenu} 
+        aria-expanded={showWtlomenu ? 'true' : 'false'}
+      >
+        Map Menu
+      </button>
+
+      {showWtlomenu && (
+        <div 
+          className={styles.wtloMenu} 
+          aria-label="WTLO Menu"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
+          <div 
+            className={styles.wtloMenuHeader}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          >
+            <h3>Menu Contents</h3>
+          </div>
+          
+          <div className={styles.wtloMenuContent}>
+            <div className={styles.wtloMenuSection}>
+              <h4 className={styles.wtloMenuSectionTitle}>Categories</h4>
+              
+              <div className={styles.wtloDropdown}>
+                <div 
+                  className={styles.wtloDropdownHeader}
+                  onClick={() => setSkinDropdownOpen(!skinDropdownOpen)}
+                >
+                  <h5 className={styles.wtloDropdownTitle}>Skin Changer</h5>
+                  <span className={`${styles.wtloDropdownIcon} ${skinDropdownOpen ? styles.open : ''}`}>
+                    ▼
+                  </span>
+                </div>
+                
+                {skinDropdownOpen && (
+                  <div className={styles.wtloDropdownContent}>
+                    {/* Default Skin */}
+                    <div 
+                      className={`${styles.wtloSkinOption} ${pdaSkin === '/PDA.png' ? styles.active : ''}`}
+                      onClick={() => { 
+                        setPdaSkin('/PDA.png'); 
+                      }}
+                    >
+                      <Image 
+                        src="/PDA.png" 
+                        alt="Default PDA Frame" 
+                        width={80} 
+                        height={50}
+                        className={styles.wtloSkinPreview}
+                      />
+                      <div className={styles.wtloSkinInfo}>
+                        <div className={styles.wtloSkinName}>DEFAULT</div>
+                        <div className={styles.wtloSkinDescription}>Standard issue PDA interface</div>
+                        {pdaSkin === '/PDA.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
+                      </div>
+                    </div>
+                    
+                    {/* Black Sunset Skin */}
+                    <div 
+                      className={`${styles.wtloSkinOption} ${pdaSkin === '/bss_pda frame.png' ? styles.active : ''}`}
+                      onClick={() => { 
+                        setPdaSkin('/bss_pda frame.png'); 
+                      }}
+                    >
+                      <Image 
+                        src="/bss_pda frame.png" 
+                        alt="Black Sunset PDA Frame" 
+                        width={80} 
+                        height={50}
+                        className={styles.wtloSkinPreview}
+                      />
+                      <div className={styles.wtloSkinInfo}>
+                        <div className={styles.wtloSkinName}>BLACK SUNSET</div>
+                        <div className={styles.wtloSkinDescription}>Dark tactical interface</div>
+                        {pdaSkin === '/bss_pda frame.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
+                      </div>
+                    </div>
+                    
+                    {/* Confederation Skin */}
+                    <div 
+                      className={`${styles.wtloSkinOption} ${pdaSkin === '/confed_pda frame.png' ? styles.active : ''}`}
+                      onClick={() => { 
+                        setPdaSkin('/confed_pda frame.png'); 
+                      }}
+                    >
+                      <Image 
+                        src="/confed_pda frame.png" 
+                        alt="Confederation PDA Frame" 
+                        width={80} 
+                        height={50}
+                        className={styles.wtloSkinPreview}
+                      />
+                      <div className={styles.wtloSkinInfo}>
+                        <div className={styles.wtloSkinName}>CONFEDERATION</div>
+                        <div className={styles.wtloSkinDescription}>Military tactical design</div>
+                        {pdaSkin === '/confed_pda frame.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
     </div>
   )
 }

@@ -321,7 +321,17 @@ export default function Home() {
       <Hero />
 
       {/* Features Section */}
-      <div id='features'>
+      <div id='features' className='relative'>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className='absolute inset-0 w-full h-full object-cover -z-10'
+        >
+          <source src='/media/2025-11-13 11-51-42.mkv' type='video/mp4' />
+        </video>
+        <div className='absolute inset-0 bg-black/50 -z-10' />
         <Features />
       </div>
 

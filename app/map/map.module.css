@@ -1,3 +1,15 @@
+/* --- Map Title Wrapper for top placement --- */
+.mapTitleWrapper {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10001;
+    pointer-events: none;
+}
 /* --- Center Page Wrapper --- */
 .centerPage {
     display: flex;
@@ -115,6 +127,66 @@
     max-height: 90vh;
 }
 
+/* clickable overlay area inside PDA frame (positioned in-page via inline style) */
+.pdaFrameButton {
+    position: absolute;
+    z-index: 10006;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.pdaFrameButton:hover, .pdaFrameButton:focus {
+    background: rgba(255,255,255,0.04);
+    transform: translateY(-2px);
+}
+
+.pdaFrameButtonPressed {
+    transform: translateY(1px) scale(0.98);
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* PDA Screen Off overlay */
+.pdaScreenOff {
+    position: absolute;
+    inset: calc(16.8% - 0.3px) 13.0% 0 13.0%; /* matches pdaScreen positioning */
+    z-index: 10004;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.pdaScreenOffInner {
+    background: radial-gradient(circle at 30% 20%, rgba(0,0,0,0.85), rgba(0,0,0,0.96));
+    border-radius: 8px;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #ddd;
+    pointer-events: none;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+}
+
+.pdaPowerIcon {
+    font-size: 28px;
+    color: #ff6b6b;
+}
+    
+.pdaOffText {
+    font-size: 13px;
+    color: #cfcfcf;
+}
+
+/* Slight hint to dim the screen behind the overlay */
+.pdaScreenOffVisible .map {
+    filter: brightness(0.2) saturate(0.6) contrast(0.9);
+}
+
 .pdaFrame {
     position: absolute;
     top: 0;
@@ -142,12 +214,16 @@
 }
 
 /* --- Zoom Slider Styles --- */
+
 .zoomSliderContainer {
+    top: 105px;
+    left: 5px;
     position: absolute;
-    top: 20px;
+    top: 5px;
     left: -30px;
     z-index: 1000;
     padding: 55px 10px;
+    margin-bottom: 10px; /* Add space below slider */
 }
 
 .zoomSliderWrapper {
@@ -160,14 +236,27 @@
 /* --- Map Switch Button Styles --- */
 .mapSwitchContainer {
     position: absolute;
-    top: 110px;
+    top: 200px; /* Move down to add space from slider */
     left: 10px;
     z-index: 1000;
     padding: 55px 10px;
 }
+/* --- Map Title Styles --- */
+.mapTitle {
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-top: 32px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 10001;
+}
 
 .mapSwitchButton {
-    top: 40px;
+    bottom: 100px;
     width: 40px;
     height: 40px;
     background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
@@ -514,4 +603,348 @@
     font-size: 1.1em;
     text-align: center;
     color: #ffffff;
+}
+
+/* --- Enhanced WTLO External Menu Styles --- */
+.wtloMenuContainer {
+    z-index: 10002;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 280px;
+}
+
+.wtloMenuToggle {
+    background: linear-gradient(160deg, #2a2a2a, #1a1a1a);
+    color: #ffffff;
+    border: 1px solid #444;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.wtloMenuToggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.wtloMenuToggle:hover::before {
+    left: 100%;
+}
+
+.wtloMenuToggle:hover {
+    background: linear-gradient(160deg, #3a3a3a, #2a2a2a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+    border-color: #555;
+}
+
+.wtloMenuToggle::after {
+    content: '▼';
+    font-size: 10px;
+    margin-left: 6px;
+    transition: transform 0.3s ease;
+    color: #aaa;
+}
+
+.wtloMenuToggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.wtloMenu {
+    margin-top: 8px;
+    width: 100%;
+    min-height: 260px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    color: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    cursor: grab;
+}
+
+.wtloMenu:active {
+    cursor: grabbing;
+}
+
+.wtloMenuHeader {
+    border-bottom: 1px solid #333;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%);
+    position: relative;
+    cursor: grab;
+    user-select: none;
+}
+
+.wtloMenuHeader:active {
+    cursor: grabbing;
+}
+
+.wtloMenuHeader::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+.wtloMenuHeader h3 {
+    margin: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #ffffff;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.wtloMenuContent {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wtloMenuSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wtloMenuSectionTitle {
+    font-size: 12px;
+    color: #b8b8b8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2a2a2a;
+    text-align: center;
+    position: relative;
+}
+
+.wtloMenuSectionTitle::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #666, transparent);
+}
+
+.wtloDropdown {
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.wtloDropdownHeader {
+    padding: 12px 14px;
+    background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
+    border-bottom: 1px solid #3a3a3a;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wtloDropdownHeader:hover {
+    background: linear-gradient(180deg, #353535 0%, #2d2d2d 100%);
+}
+
+.wtloDropdownTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f0f0f0;
+    margin: 0;
+    text-align: center;
+    flex: 1;
+    letter-spacing: 0.4px;
+}
+
+.wtloDropdownIcon {
+    font-size: 10px;
+    color: #999;
+    transition: transform 0.3s ease;
+    width: 14px;
+    text-align: center;
+}
+
+.wtloDropdownIcon.open {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.wtloDropdownContent {
+    background: rgba(10, 10, 10, 0.9);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Enhanced Skin Options */
+.wtloSkinOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.wtloSkinOption::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%, rgba(0,0,0,0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.wtloSkinOption:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border-color: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.wtloSkinOption:hover::before {
+    opacity: 1;
+}
+
+.wtloSkinOption.active {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+    border-color: #666;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.wtloSkinOption.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.wtloSkinPreview {
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.7);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+    background: #1a1a1a;
+    padding: 3px;
+}
+
+.wtloSkinOption:hover .wtloSkinPreview {
+    transform: scale(1.06);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.wtloSkinOption.active .wtloSkinPreview {
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.wtloSkinInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+.wtloSkinName {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.4px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.wtloSkinDescription {
+    font-size: 11px;
+    color: #999;
+    margin: 0;
+    text-align: center;
+    line-height: 1.3;
+    max-width: 180px;
+}
+
+.wtloSkinBadge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 4px;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+/* Selection indicator */
+.wtloSkinOption.active .wtloSkinName {
+    background: linear-gradient(135deg, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .wtloMenuContainer {
+        min-width: 260px;
+    }
 }

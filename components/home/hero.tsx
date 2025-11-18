@@ -8,9 +8,10 @@ import { Sparkles } from "lucide-react"
 export default function Hero() {
   const [mounted, setMounted] = useState(false)
   const [displayedText, setDisplayedText] = useState("")
-  const [isTypingComplete, setIsTypingComplete] = useState(false)
+  const [textIndex, setTextIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const fullText = "Will To Live Online"
+  const texts = ["Welcome to Will To Live Online", "Welcome to Will To Live Online Wiki"]
 
   useEffect(() => {
     setMounted(true)
@@ -19,19 +20,30 @@ export default function Hero() {
   useEffect(() => {
     if (!mounted) return
 
-    let currentIndex = 0
-    const typingInterval = setInterval(() => {
-      if (currentIndex <= fullText.length) {
-        setDisplayedText(fullText.slice(0, currentIndex))
-        currentIndex++
+    const handleTyping = () => {
+      const currentText = texts[textIndex]
+      if (isDeleting) {
+        setDisplayedText(currentText.substring(0, displayedText.length - 1))
       } else {
-        setIsTypingComplete(true)
-        clearInterval(typingInterval)
+        setDisplayedText(currentText.substring(0, displayedText.length + 1))
       }
-    }, 100) // Adjust speed here (100ms per character)
 
-    return () => clearInterval(typingInterval)
-  }, [mounted])
+      if (!isDeleting && displayedText === currentText) {
+        if (textIndex === texts.length - 1) {
+          // This is the last text, so we stop the animation.
+          return
+        }
+        setTimeout(() => setIsDeleting(true), 2000) // Pause before deleting
+      } else if (isDeleting && displayedText === "") {
+        setIsDeleting(false)
+        setTextIndex((prev) => prev + 1)
+      }
+    }
+
+    const typingTimeout = setTimeout(handleTyping, isDeleting ? 50 : 100)
+
+    return () => clearTimeout(typingTimeout)
+  }, [displayedText, isDeleting, textIndex, mounted, texts])
 
   if (!mounted) {
     return null
@@ -39,7 +51,7 @@ export default function Hero() {
 
   const renderColoredText = (text: string) => {
     return text.split(" ").map((word, index) => {
-      if (word === "To" || word === "Live" || word === "Online") {
+      if (["Will", "To", "Live", "Online", "Wiki"].includes(word)) {
         return (
           <span key={index} className="text-primary">
             {word}{" "}
