@@ -301,28 +301,11 @@ export default function MapPage() {
       const coords = gridToCoordinates('C2-6')
       
       // Create custom marker icon
-      const customIcon = leafletRef.divIcon({
-        className: 'custom-marker',
-        html: `
-          <div style="
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-          ">
-            <div style="
-              color: white;
-              font-size: 12px;
-              font-weight: bold;
-              text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            ">🐀</div>
-          </div>
-        `,
+      const customIcon = leafletRef.icon({
+        iconUrl: '/markers/Monster.png',
         iconSize: [24, 24],
-        iconAnchor: [12, 12]
+        iconAnchor: [12, 24],
+        popupAnchor: [0, -24]
       })
       
       // Add marker to map
