@@ -29,27 +29,153 @@ export default function MapPage() {
   const [btnPressed, setBtnPressed] = useState(false)
   const [skinDropdownOpen, setSkinDropdownOpen] = useState(true)
   
-  // Drag functionality states
+  // Drag functionality states for WTLO Menu
   const [wtloMenuPosition, setWtloMenuPosition] = useState({ x: 20, y: 100 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  
+  // Drag functionality states for External Map Menu (WTLO Menu)
+  const [externalMenuPosition, setExternalMenuPosition] = useState({ x: 20, y: 100 })
+  const [isExternalDragging, setIsExternalDragging] = useState(false)
+  const [externalDragStart, setExternalDragStart] = useState({ x: 0, y: 0 })
 
-  // Legend marks state
-  const [legendMarks, setLegendMarks] = useState<Record<string, boolean>>({
-    'Monsters': true,
-    'NPCs': true,
-    'Anomalies': true,
-    'Teleports': true,
-    'Quest Item': true,
-    'Safe zones': true,
-    'Loot': true,
-    'Gasoline': true,
-    'Base': true,
-    'Plant': true,
-    'Artifacts': true,
-    'Radiation zone': true,
-    'Key': true,
-    'Event Area': true
+  // Marker system states
+  const [markers, setMarkers] = useState<any[]>([])
+  const [leafletRef, setLeafletRef] = useState<any>(null)
+
+  // Updated Legend categories state structure with nested sub-items
+  const [legendCategories, setLegendCategories] = useState<Record<string, {
+    checked: boolean;
+    expanded?: boolean;
+    subItems: Record<string, boolean>;
+  }>>({
+    'Monsters': {
+      checked: false,
+      expanded: false,
+      subItems: {
+        'Small Rats': false,
+        'Big Rats': false,
+        'Big White Rat': false,
+        'Stray Dogs': false,
+        'Elder Stray Dogs': false,
+        'Watchers': false,
+        'Big Watchers': false,
+        'Bog Watchers': false,
+        'Small Boars': false,
+        'Boars': false,
+        'Elder Boars': false,
+        'Small Lizards': false,
+        'Lizards': false,
+        'Elder Lizards': false,
+        'Small Cave Spiders': false,
+        'Cave Spiders': false,
+        'Big Cave Spiders': false,
+        'Small Cockroaches': false,
+        'Elder Cockroaches': false,
+        'Small Bugs': false,
+        'Bugs': false,
+        'Elder Bugs': false,
+        'Bog Beltchers': false,
+        'Small symbionts': false,
+        'Bog Symbiont': false,
+        'Bears': false,
+        'Bloodsuckers': false,
+        'Elder Bloodsuckers': false,
+        'Small Hornets': false,
+        'Hornets': false,
+        'Elder Hornets': false,
+        'Jellies': false,
+        'Big Jellies': false,
+        'Small Sand Spiders': false,
+        'Sand Spiders': false,
+        'Big Sand Spiders': false,
+        'Fire Spiders': false,
+        'Elder Fire Spiders': false,
+        'Sun Spiders': false,
+        'Big Sun Spiders': false,
+        'Matadors': false,
+        'Toxic Spiders': false,
+        'Elder Toxic Spiders': false,
+        'Hogs of Coast': false,
+        'Lurkers': false,
+        'Listeners': false,
+        'Stingrays': false,
+      }
+    },
+    'Bosses': {
+      checked: false,
+      expanded: false,
+      subItems: {
+        'Metal Junk Boar': false,
+        'Symbiont': false,
+        'Big Cave Spider': false,
+        'Giant Flesheater': false,
+        'Giant Crab': false,
+        'Crocodile': false,
+      }
+    },
+    'Season Bosses': {
+      checked: false,
+      expanded: false,
+      subItems: {
+        'Frost Deer': false,
+        'RW-01': false,
+        'Hellbiont': false,
+      }
+    },
+    // Keep existing categories as flat items
+    'NPCs': {
+      checked: false,
+      subItems: {}
+    },
+    'Anomalies': {
+      checked: false,
+      subItems: {}
+    },
+    'Teleports': {
+      checked: false,
+      subItems: {}
+    },
+    'Quest Item': {
+      checked: false,
+      subItems: {}
+    },
+    'Safe zones': {
+      checked: false,
+      subItems: {}
+    },
+    'Loot': {
+      checked: false,
+      subItems: {}
+    },
+    'Gasoline': {
+      checked: false,
+      subItems: {}
+    },
+    'Base': {
+      checked: false,
+      subItems: {}
+    },
+    'Plant': {
+      checked: false,
+      subItems: {}
+    },
+    'Artifacts': {
+      checked: false,
+      subItems: {}
+    },
+    'Radiation zone': {
+      checked: false,
+      subItems: {}
+    },
+    'Key': {
+      checked: false,
+      subItems: {}
+    },
+    'Event Area': {
+      checked: false,
+      subItems: {}
+    }
   })
 
   // Available maps from the public/maps folder - REORDERED AND RENAMED
@@ -57,7 +183,7 @@ export default function MapPage() {
     { name: "Default Map", file: "maps/T_Data_Map_Default.png", displayName: "Default" },
     { name: "Camp", file: "maps/T_Data_Map_Camp.png", displayName: "Camp" },
     { name: "Solenchy Town", file: "maps/T_Data_Map_Solar_City_Town.png", displayName: "Solenchy Town" },
-    { name: "Solar City", file: "maps/T_Data_Map_Solar_City.png", displayName: "Solar City" },
+    { name: "Solenchy Outskirts", file: "maps/T_Data_Map_Solar_City.png", displayName: "Solenchy Outskirts" },
     { name: "MTE", file: "maps/T_Data_Map_Solar_City_Hangar.png", displayName: "MTE" },
     { name: "Minaev Mine", file: "maps/T_Data_Map_Minaev_Mine.png", displayName: "Minaev Mine" },
     { name: "Swamps", file: "maps/T_Data_Map_Swamp.png", displayName: "Swamps" },
@@ -92,12 +218,137 @@ export default function MapPage() {
     setIsDragging(false)
   }
 
+  // Drag functionality for External Map Menu (WTLO Menu)
+  const handleExternalMouseDown = (e: React.MouseEvent) => {
+    setIsExternalDragging(true)
+    setExternalDragStart({
+      x: e.clientX - externalMenuPosition.x,
+      y: e.clientY - externalMenuPosition.y
+    })
+  }
+
+  const handleExternalMouseMove = (e: React.MouseEvent) => {
+    if (!isExternalDragging) return
+    setExternalMenuPosition({
+      x: e.clientX - externalDragStart.x,
+      y: e.clientY - externalDragStart.y
+    })
+  }
+
+  const handleExternalMouseUp = () => {
+    setIsExternalDragging(false)
+  }
+
+  // Add event listeners for external menu dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isExternalDragging) return
+      setExternalMenuPosition({
+        x: e.clientX - externalDragStart.x,
+        y: e.clientY - externalDragStart.y
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsExternalDragging(false)
+    }
+
+    if (isExternalDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isExternalDragging, externalDragStart])
+
+  // Function to update markers based on legend and map state
+  const updateMarkers = async () => {
+    if (!mapInstanceRef.current || !leafletRef) return
+    
+    // Clear existing markers
+    markers.forEach(marker => {
+      mapInstanceRef.current?.removeLayer(marker)
+    })
+    
+    // Check if we should show Small Rats marker
+    const isSmallRatsChecked = legendCategories.Monsters?.subItems['Small Rats']
+    const isSolenchyTown = currentMap === "maps/T_Data_Map_Solar_City_Town.png"
+    
+    if (isSmallRatsChecked && isSolenchyTown) {
+      // Grid C2-6 position for Solenchy Town map
+      // Since the map is 4096x4096, we need to calculate coordinates
+      // Assuming grid system: A-H for rows (8 rows), 1-8 for columns (8 columns)
+      const gridToCoordinates = (grid: string) => {
+        // Convert grid like "C2-6" to coordinates
+        const rowLetter = grid.charAt(0) // 'C'
+        const columnRange = grid.substring(1) // '2-6'
+        
+        // Row calculation: A=0, B=512, C=1024, etc.
+        const rowIndex = rowLetter.charCodeAt(0) - 65 // A=0, B=1, C=2
+        const rowY = rowIndex * 1312 + 456 // 512 pixels per grid row, +256 for center
+        
+        // Column calculation: For range C2-6, we'll place in the middle of columns 2-6
+        const [startCol, endCol] = columnRange.split('-').map(Number)
+        const middleCol = (startCol + endCol) / 2
+        const colX = (middleCol - 1) * 612 + 256 // 512 pixels per grid column, +256 for center
+        
+        return { x: colX, y: rowY }
+      }
+      
+      const coords = gridToCoordinates('C2-6')
+      
+      // Create custom marker icon
+      const customIcon = leafletRef.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+          ">
+            <div style="
+              color: white;
+              font-size: 12px;
+              font-weight: bold;
+              text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            ">🐀</div>
+          </div>
+        `,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      })
+      
+      // Add marker to map
+      const marker = leafletRef.marker([coords.y, coords.x], { icon: customIcon })
+        .addTo(mapInstanceRef.current)
+        .bindPopup('<strong>Small Rats Spawn</strong><br>Grid: C2-6<br><em>Common spawn area</em>')
+        .openPopup()
+      
+      setMarkers([marker])
+    } else {
+      setMarkers([])
+    }
+  }
+
+  // Update markers when conditions change
+  useEffect(() => {
+    updateMarkers()
+  }, [currentMap, legendCategories.Monsters?.subItems['Small Rats']])
+
   useEffect(() => {
     if (mapRef.current && typeof window !== "undefined" && !mapInstanceRef.current) {
       // Dynamically import Leaflet on the client only to avoid server-side window usage
       ;(async () => {
         const LeafletModule = await import("leaflet")
         const Leaflet: any = (LeafletModule as any).default ?? LeafletModule
+        setLeafletRef(Leaflet) // Store Leaflet reference
 
         // Dynamically load leaflet-draw on the client only (it references window)
         try {
@@ -292,11 +543,63 @@ export default function MapPage() {
     if (showMapMenu) setShowMapMenu(false)
   }
 
-  const handleLegendToggle = (markName: string) => {
-    setLegendMarks(prev => ({
-      ...prev,
-      [markName]: !prev[markName]
-    }))
+  const toggleCategory = (categoryName: string) => {
+    setLegendCategories(prev => {
+      const newState = { ...prev }
+      const newChecked = !newState[categoryName].checked
+      
+      // Toggle the main category
+      newState[categoryName] = {
+        ...newState[categoryName],
+        checked: newChecked
+      }
+      
+      // If there are subitems, toggle them all
+      if (Object.keys(newState[categoryName].subItems).length > 0) {
+        const updatedSubItems: Record<string, boolean> = {}
+        Object.keys(newState[categoryName].subItems).forEach(subItem => {
+          updatedSubItems[subItem] = newChecked
+        })
+        newState[categoryName].subItems = updatedSubItems
+      }
+      
+      return newState
+    })
+  }
+
+  const toggleSubItem = (categoryName: string, subItemName: string) => {
+    setLegendCategories(prev => {
+      const newState = { ...prev }
+      
+      // Toggle the subitem
+      newState[categoryName] = {
+        ...newState[categoryName],
+        subItems: {
+          ...newState[categoryName].subItems,
+          [subItemName]: !newState[categoryName].subItems[subItemName]
+        }
+      }
+      
+      // Check if all subitems are checked to update the main category
+      const allSubItems = Object.values(newState[categoryName].subItems)
+      if (allSubItems.length > 0) {
+        const allChecked = allSubItems.every(item => item === true)
+        newState[categoryName].checked = allChecked
+      }
+      
+      return newState
+    })
+  }
+
+  const toggleCategoryExpansion = (categoryName: string) => {
+    setLegendCategories(prev => {
+      const newState = { ...prev }
+      newState[categoryName] = {
+        ...newState[categoryName],
+        expanded: !newState[categoryName].expanded
+      }
+      return newState
+    })
   }
 
   const toggleWtlomenu = () => {
@@ -411,22 +714,60 @@ export default function MapPage() {
                   <h3>Legend Marks</h3>
                 </div>
                 <ul className={styles.legendMenuList}>
-                  {Object.entries(legendMarks).map(([markName, isChecked]) => (
-                    <li
-                      key={markName}
-                      className={styles.legendMenuItem}
-                      onClick={() => handleLegendToggle(markName)}
-                    >
+                  {Object.entries(legendCategories).map(([categoryName, categoryData]) => (
+                    <li key={categoryName} className={styles.legendCategoryItem}>
+                      {/* Category row */}
                       <div 
-                        className={`${styles.legendCheckbox} ${isChecked ? styles.checked : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleLegendToggle(markName)
+                        className={styles.legendCategoryRow}
+                        onClick={() => {
+                          if (Object.keys(categoryData.subItems).length > 0) {
+                            toggleCategoryExpansion(categoryName)
+                          }
                         }}
-                      />
-                      <span className={styles.legendLabel}>
-                        {markName}
-                      </span>
+                      >
+                        <div 
+                          className={`${styles.legendCheckbox} ${categoryData.checked ? styles.checked : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleCategory(categoryName)
+                          }}
+                        />
+                        <span className={styles.legendCategoryLabel}>
+                          {categoryName}
+                        </span>
+                        {Object.keys(categoryData.subItems).length > 0 && (
+                          <span className={`${styles.categoryArrow} ${categoryData.expanded ? styles.open : ''}`}>
+                            ▼
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Sub-items list */}
+                      {Object.keys(categoryData.subItems).length > 0 && categoryData.expanded && (
+                        <ul className={styles.subItemList}>
+                          {Object.entries(categoryData.subItems).map(([subItemName, isChecked]) => (
+                            <li 
+                              key={`${categoryName}-${subItemName}`}
+                              className={styles.subItem}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleSubItem(categoryName, subItemName)
+                              }}
+                            >
+                              <div 
+                                className={`${styles.subItemCheckbox} ${isChecked ? styles.checked : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  toggleSubItem(categoryName, subItemName)
+                                }}
+                              />
+                              <span className={styles.subItemLabel}>
+                                {subItemName}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -471,14 +812,14 @@ export default function MapPage() {
         )}
       </div>
 
-    {/* Enhanced WTLO Menu with drag functionality */}
+    {/* Enhanced WTLO Menu with drag functionality - NOW DRAGGABLE BY HEADER */}
     <div 
       className={styles.wtloMenuContainer}
       style={{
         position: 'fixed',
-        left: `${wtloMenuPosition.x}px`,
-        top: `${wtloMenuPosition.y}px`,
-        cursor: isDragging ? 'grabbing' : 'default'
+        left: `${externalMenuPosition.x}px`,
+        top: `${externalMenuPosition.y}px`,
+        cursor: isExternalDragging ? 'grabbing' : 'default'
       }}
     >
       <button 
@@ -493,22 +834,23 @@ export default function MapPage() {
         <div 
           className={styles.wtloMenu} 
           aria-label="WTLO Menu"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          style={{ cursor: 'default' }}
         >
           <div 
             className={styles.wtloMenuHeader}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            onMouseDown={handleExternalMouseDown}
+            style={{ 
+              cursor: isExternalDragging ? 'grabbing' : 'grab',
+              userSelect: 'none'
+            }}
           >
             <h3>Menu Contents</h3>
+            <div className={styles.dragHandleHint}>↕ Drag</div>
           </div>
           
           <div className={styles.wtloMenuContent}>
             <div className={styles.wtloMenuSection}>
-              <h4 className={styles.wtloMenuSectionTitle}>Categories</h4>
+              
               
               <div className={styles.wtloDropdown}>
                 <div 
@@ -533,13 +875,13 @@ export default function MapPage() {
                       <Image 
                         src="/PDA.png" 
                         alt="Default PDA Frame" 
-                        width={80} 
-                        height={50}
+                        width={60} 
+                        height={40}
                         className={styles.wtloSkinPreview}
                       />
                       <div className={styles.wtloSkinInfo}>
                         <div className={styles.wtloSkinName}>DEFAULT</div>
-                        <div className={styles.wtloSkinDescription}>Standard issue PDA interface</div>
+                        <div className={styles.wtloSkinDescription}>Standard issue PDA</div>
                         {pdaSkin === '/PDA.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
                       </div>
                     </div>
@@ -554,13 +896,13 @@ export default function MapPage() {
                       <Image 
                         src="/bss_pda frame.png" 
                         alt="Black Sunset PDA Frame" 
-                        width={80} 
-                        height={50}
+                        width={60} 
+                        height={40}
                         className={styles.wtloSkinPreview}
                       />
                       <div className={styles.wtloSkinInfo}>
                         <div className={styles.wtloSkinName}>BLACK SUNSET</div>
-                        <div className={styles.wtloSkinDescription}>Dark tactical interface</div>
+                        <div className={styles.wtloSkinDescription}>Dark tactical</div>
                         {pdaSkin === '/bss_pda frame.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
                       </div>
                     </div>
@@ -575,13 +917,13 @@ export default function MapPage() {
                       <Image 
                         src="/confed_pda frame.png" 
                         alt="Confederation PDA Frame" 
-                        width={80} 
-                        height={50}
+                        width={60} 
+                        height={40}
                         className={styles.wtloSkinPreview}
                       />
                       <div className={styles.wtloSkinInfo}>
                         <div className={styles.wtloSkinName}>CONFEDERATION</div>
-                        <div className={styles.wtloSkinDescription}>Military tactical design</div>
+                        <div className={styles.wtloSkinDescription}>Military design</div>
                         {pdaSkin === '/confed_pda frame.png' && <span className={styles.wtloSkinBadge}>ACTIVE</span>}
                       </div>
                     </div>

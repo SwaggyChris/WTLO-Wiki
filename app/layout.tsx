@@ -1,15 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Roboto } from "next/font/google"
 import "./globals.css"
 
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  display: "swap",
-  variable: "--font-roboto",
-})
 
 export const metadata: Metadata = {
   title: "WTLO",
@@ -23,16 +15,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark font-sans">
       <head>
         <link rel="icon" href="/GameLogoWhite.png" />
-        <style>{`
-html {
-  font-family: ${roboto.style.fontFamily};
-  --font-sans: ${roboto.variable};
-  --font-mono: ${roboto.variable};
-}
-        `}</style>
       </head>
       <body className="dark">
         {children}

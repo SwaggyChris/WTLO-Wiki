@@ -149,6 +149,8 @@
 
 /* clickable overlay area inside PDA frame (positioned in-page via inline style) */
 .pdaFrameButton {
+    margin-left: 46.7%;
+    margin-top: 13.5%;
     position: absolute;
     z-index: 10006;
     background: rgba(255,255,255,0.02);
@@ -262,13 +264,13 @@
     padding: 55px 10px;
 }
 
-/* --- Legend Marks Menu Styles --- */
+/* --- SMALLER Legend Marks Menu Styles --- */
 .legendMenu {
     position: absolute;
     bottom: -50px;
     left: 60px;
-    width: 220px;
-    max-height: 250px;
+    width: 220px; /* Reduced from 280px */
+    max-height: 280px; /* Reduced from 350px */
     background-color: rgba(0, 0, 0, 0.95);
     border: 1px solid #444;
     border-radius: 5px;
@@ -280,7 +282,7 @@
 }
 
 .legendMenuHeader {
-    padding: 12px 15px;
+    padding: 10px 12px; /* Reduced padding */
     border-bottom: 1px solid #444;
     background-color: rgba(86, 86, 86, 0.946);
 }
@@ -288,38 +290,148 @@
 .legendMenuHeader h3 {
     margin: 0;
     color: #f1f1f1;
-    font-size: 14px;
+    font-size: 12px; /* Smaller font */
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px; /* Reduced spacing */
 }
 
 .legendMenuList {
     list-style: none;
-    padding: 10px;
+    padding: 8px; /* Reduced padding */
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px; /* Reduced gap */
 }
 
-.legendMenuItem {
+/* Enhanced Legend Category Styles - Smaller */
+.legendCategoryItem {
+    margin-bottom: 6px; /* Reduced margin */
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 30, 30, 0.7);
+}
+
+.legendCategoryRow {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+    gap: 8px; /* Reduced gap */
+    padding: 8px 10px; /* Reduced padding */
+    background: rgba(40, 40, 40, 0.8);
     cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.legendMenuItem:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.legendCategoryRow:hover {
+    background: rgba(50, 50, 50, 0.9);
 }
 
+.legendCategoryLabel {
+    font-size: 11px; /* Smaller font */
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px; /* Reduced spacing */
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.categoryArrow {
+    font-size: 9px; /* Smaller arrow */
+    color: #666;
+    transition: transform 0.3s ease;
+    transform: rotate(0deg);
+    width: 14px;
+    text-align: center;
+}
+
+.categoryArrow.open {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+
+/* Sub-items list - Smaller */
+.subItemList {
+    list-style: none;
+    padding: 6px 0; /* Reduced padding */
+    margin: 0;
+    background: rgba(20, 20, 20, 0.8);
+    max-height: 160px; /* Reduced height */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #222;
+}
+
+.subItemList::-webkit-scrollbar {
+    width: 4px; /* Thinner scrollbar */
+}
+
+.subItemList::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+}
+
+.subItemList::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 2px; /* Smaller radius */
+}
+
+.subItem {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+    padding: 5px 10px 5px 20px; /* Reduced padding, adjusted indentation */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-left: 2px solid transparent;
+}
+
+.subItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.subItemCheckbox {
+    width: 12px; /* Smaller checkbox */
+    height: 12px; /* Smaller checkbox */
+    border: 2px solid #555;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.subItemCheckbox.checked {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.subItemCheckbox.checked::after {
+    content: '✓';
+    color: white;
+    font-size: 9px; /* Smaller checkmark */
+    font-weight: bold;
+}
+
+.subItemLabel {
+    font-size: 10px; /* Smaller font */
+    color: #cccccc;
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+}
+
+/* Enhanced checkbox styling - Smaller */
 .legendCheckbox {
-    width: 16px;
-    height: 16px;
+    width: 14px; /* Smaller checkbox */
+    height: 14px; /* Smaller checkbox */
     border: 2px solid #666;
     border-radius: 3px;
     background: rgba(255, 255, 255, 0.1);
@@ -328,6 +440,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .legendCheckbox.checked {
@@ -338,16 +451,8 @@
 .legendCheckbox.checked::after {
     content: '✓';
     color: white;
-    font-size: 12px;
+    font-size: 10px; /* Smaller checkmark */
     font-weight: bold;
-}
-
-.legendLabel {
-    font-size: 12px;
-    color: #e0e0e0;
-    cursor: pointer;
-    user-select: none;
-    flex: 1;
 }
 
 /* Legend Button Container */
@@ -478,13 +583,13 @@
         inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* --- Map Selection Menu Styles --- */
+/* --- Map Selection Menu Styles (ORIGINAL SIZE) --- */
 .mapMenu {
     position: absolute;
     bottom: -70px;
     left: 60px;
-    width: 200px;
-    max-height: 300px;
+    width: 200px; /* Original width */
+    max-height: 300px; /* Original height */
     background-color: rgba(0, 0, 0, 0.9);
     border: 1px solid #444;
     border-radius: 5px;
@@ -504,7 +609,7 @@
 .mapMenuHeader h3 {
     margin: 0;
     color: #f1f1f1;
-    font-size: 14px;
+    font-size: 14px; /* Original font size */
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -517,11 +622,11 @@
 }
 
 .mapMenuItem {
-    padding: 10px 15px;
+    padding: 10px 15px; /* Original padding */
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 12px;
+    font-size: 12px; /* Original font size */
 }
 
 .mapMenuItem:hover {
@@ -769,30 +874,30 @@
     color: #ffffff;
 }
 
-/* --- Enhanced WTLO External Menu Styles --- */
+/* --- SMALLER Enhanced WTLO External Menu Styles WITH DRAGGABLE HEADER --- */
 .wtloMenuContainer {
     z-index: 10002;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    min-width: 280px;
+    min-width: 200px; /* Reduced from 280px */
 }
 
 .wtloMenuToggle {
     background: linear-gradient(160deg, #2a2a2a, #1a1a1a);
     color: #ffffff;
     border: 1px solid #444;
-    padding: 10px 16px;
+    padding: 8px 12px; /* Reduced padding */
     border-radius: 6px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px; /* Smaller font */
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    width: 50%;
+    width: 100%; /* Full width */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -824,8 +929,8 @@
 
 .wtloMenuToggle::after {
     content: '▼';
-    font-size: 10px;
-    margin-left: 6px;
+    font-size: 9px; /* Smaller arrow */
+    margin-left: 4px;
     transition: transform 0.3s ease;
     color: #aaa;
 }
@@ -836,32 +941,31 @@
 }
 
 .wtloMenu {
-    margin-top: 8px;
+    margin-top: 6px; /* Reduced margin */
     width: 100%;
-    min-height: 260px;
+    min-height: 200px; /* Reduced from 260px */
     background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
     border: 1px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    border-radius: 6px; /* Slightly smaller radius */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7); /* Smaller shadow */
     color: #f1f1f1;
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px); /* Reduced blur */
     overflow: hidden;
-    cursor: grab;
-}
-
-.wtloMenu:active {
-    cursor: grabbing;
+    user-select: none;
 }
 
 .wtloMenuHeader {
     border-bottom: 1px solid #333;
-    padding: 14px 16px;
+    padding: 10px 12px; /* Reduced padding */
     background: linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%);
     position: relative;
     cursor: grab;
     user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .wtloMenuHeader:active {
@@ -880,37 +984,49 @@
 
 .wtloMenuHeader h3 {
     margin: 0;
-    font-size: 14px;
+    font-size: 12px; /* Smaller font */
     text-transform: uppercase;
     color: #ffffff;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px; /* Reduced letter spacing */
     font-weight: 700;
-    text-align: center;
+    text-align: left;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    flex: 1;
+}
+
+.dragHandleHint {
+    font-size: 9px;
+    color: #999;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #444;
+    margin-left: 8px;
+    white-space: nowrap;
 }
 
 .wtloMenuContent {
-    padding: 16px;
+    padding: 12px; /* Reduced padding */
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px; /* Reduced gap */
 }
 
 .wtloMenuSection {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px; /* Reduced gap */
 }
 
 .wtloMenuSectionTitle {
-    font-size: 12px;
+    font-size: 11px; /* Smaller font */
     color: #b8b8b8;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.4px; /* Reduced letter spacing */
     font-weight: 600;
     margin: 0;
-    padding-bottom: 6px;
+    padding-bottom: 4px; /* Reduced padding */
     border-bottom: 1px solid #2a2a2a;
     text-align: center;
     position: relative;
@@ -922,7 +1038,7 @@
     bottom: -1px;
     left: 50%;
     transform: translateX(-50%);
-    width: 50px;
+    width: 40px; /* Smaller width */
     height: 1px;
     background: linear-gradient(90deg, transparent, #666, transparent);
 }
@@ -930,13 +1046,13 @@
 .wtloDropdown {
     background: rgba(15, 15, 15, 0.8);
     border: 1px solid #3a3a3a;
-    border-radius: 6px;
+    border-radius: 5px; /* Smaller radius */
     overflow: hidden;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3); /* Smaller shadow */
 }
 
 .wtloDropdownHeader {
-    padding: 12px 14px;
+    padding: 10px 12px; /* Reduced padding */
     background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
     border-bottom: 1px solid #3a3a3a;
     cursor: pointer;
@@ -952,20 +1068,20 @@
 }
 
 .wtloDropdownTitle {
-    font-size: 13px;
+    font-size: 12px; /* Smaller font */
     font-weight: 600;
     color: #f0f0f0;
     margin: 0;
     text-align: center;
     flex: 1;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.2px; /* Reduced letter spacing */
 }
 
 .wtloDropdownIcon {
-    font-size: 10px;
+    font-size: 9px; /* Smaller icon */
     color: #999;
     transition: transform 0.3s ease;
-    width: 14px;
+    width: 12px;
     text-align: center;
 }
 
@@ -976,20 +1092,20 @@
 
 .wtloDropdownContent {
     background: rgba(10, 10, 10, 0.9);
-    padding: 14px;
+    padding: 10px; /* Reduced padding */
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px; /* Reduced gap */
 }
 
-/* Enhanced Skin Options */
+/* Enhanced Skin Options - Smaller */
 .wtloSkinOption {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 6px;
+    gap: 8px; /* Reduced gap */
+    padding: 10px; /* Reduced padding */
+    border-radius: 5px; /* Smaller radius */
     cursor: pointer;
     transition: all 0.3s ease;
     border: 1px solid transparent;
@@ -1014,7 +1130,7 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
     border-color: #444;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Smaller shadow */
 }
 
 .wtloSkinOption:hover::before {
@@ -1024,7 +1140,7 @@
 .wtloSkinOption.active {
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
     border-color: #666;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.4); /* Smaller shadow */
 }
 
 .wtloSkinOption.active::after {
@@ -1038,64 +1154,67 @@
 }
 
 .wtloSkinPreview {
-    border-radius: 4px;
+    border-radius: 3px; /* Smaller radius */
     border: 1px solid rgba(0,0,0,0.7);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.4); /* Smaller shadow */
     transition: all 0.3s ease;
     background: #1a1a1a;
-    padding: 3px;
+    padding: 2px; /* Reduced padding */
+    width: 60px; /* Explicit width */
+    height: 40px; /* Explicit height */
+    object-fit: cover;
 }
 
 .wtloSkinOption:hover .wtloSkinPreview {
-    transform: scale(1.06);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    transform: scale(1.05); /* Slightly smaller scale */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Smaller shadow */
     border-color: rgba(255,255,255,0.1);
 }
 
 .wtloSkinOption.active .wtloSkinPreview {
     border-color: rgba(102, 126, 234, 0.4);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3); /* Smaller shadow */
 }
 
 .wtloSkinInfo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px; /* Reduced gap */
     align-items: center;
     width: 100%;
     position: relative;
 }
 
 .wtloSkinName {
-    font-size: 13px;
+    font-size: 11px; /* Smaller font */
     font-weight: 700;
     color: #ffffff;
     margin: 0;
     text-align: center;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px; /* Reduced letter spacing */
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .wtloSkinDescription {
-    font-size: 11px;
+    font-size: 9px; /* Smaller font */
     color: #999;
     margin: 0;
     text-align: center;
-    line-height: 1.3;
-    max-width: 180px;
+    line-height: 1.2; /* Reduced line height */
+    max-width: 140px; /* Smaller max width */
 }
 
 .wtloSkinBadge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 9px;
+    padding: 2px 6px; /* Reduced padding */
+    border-radius: 8px; /* Smaller radius */
+    font-size: 8px; /* Smaller font */
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-top: 4px;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+    letter-spacing: 0.4px; /* Reduced letter spacing */
+    margin-top: 2px; /* Reduced margin */
+    box-shadow: 0 1px 4px rgba(102, 126, 234, 0.4); /* Smaller shadow */
 }
 
 /* Selection indicator */
@@ -1109,6 +1228,72 @@
 /* Responsive adjustments */
 @media (max-width: 1400px) {
     .wtloMenuContainer {
-        min-width: 260px;
+        min-width: 180px; /* Even smaller on smaller screens */
     }
+}
+
+/* --- Custom Marker Styles --- */
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Small rats marker animation */
+@keyframes ratPulse {
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    }
+    50% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 18px rgba(220, 38, 38, 0.8);
+    }
+    100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    }
+}
+
+.custom-marker > div {
+    animation: ratPulse 2s infinite;
+}
+
+/* Marker popup styling */
+.leaflet-popup-content {
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    max-width: 200px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-popup-content strong {
+    color: #ff6b6b;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.leaflet-popup-content em {
+    color: #aaa;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.leaflet-popup-tip-container {
+    margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Marker hover effect */
+.custom-marker:hover > div {
+    animation: ratPulse 0.8s infinite;
+    filter: brightness(1.2);
 }
