@@ -1,0 +1,1656 @@
+/* --- Map Title Wrapper for top placement --- */
+.mapTitleWrapper {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: fixed; /* Changed from absolute to fixed */
+    top: 0;
+    left: 0;
+    z-index: 10001;
+    pointer-events: none;
+    height: 80px; /* Fixed height */
+    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); /* Subtle background gradient */
+}
+
+/* --- Map Title Styles --- */
+.mapTitle {
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 1.8rem; /* Slightly smaller font */
+    font-weight: 700;
+    margin-top: 20px; /* Reduced margin */
+    margin-bottom: 0;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    z-index: 10001;
+    padding: 0 20px;
+    line-height: 1.2;
+}
+
+/* --- Center Page Wrapper --- */
+.centerPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    position: relative;
+}
+
+/* --- Back Link Styles --- */
+.backLink {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #d1d5db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.backLink:hover {
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* For dark mode */
+@media (prefers-color-scheme: dark) {
+    .backLink {
+        color: #9ca3af;
+    }
+    
+    .backLink:hover {
+        color: #ffffff;
+    }
+}
+
+/* --- Sidebar Menu Styles --- */
+.sidebarMenu {
+    position: absolute;
+    width: 200px;
+    max-height: 90vh;
+    margin-right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    font-size: 1em;
+    flex-shrink: 0;
+    z-index: 1001;
+}
+
+.sidebarHeader {
+    cursor: move;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+.sidebarHeader h3 {
+    margin: 0;
+    color: #b1b1b1;
+    font-size: 1.2em;
+}
+
+.sidebarContent {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.sidebarContent a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebarContent a:hover {
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
+.sidebarContent a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* --- PDA Container & Map --- */
+.pdaContainer {
+    position: relative;
+    width: 90vw;
+    max-width: 1200px;
+    height: auto;
+    aspect-ratio: 1200 / 750;
+    max-height: 90vh;
+    margin-top: 20px; /* Add margin to prevent title overlap */
+}
+
+/* clickable overlay area inside PDA frame (positioned in-page via inline style) */
+.pdaFrameButton {
+    margin-left: 46.7%;
+    margin-top: 13.5%;
+    position: absolute;
+    z-index: 10006;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.pdaFrameButton:hover, .pdaFrameButton:focus {
+    background: rgba(255,255,255,0.04);
+    transform: translateY(-2px);
+}
+
+.pdaFrameButtonPressed {
+    transform: translateY(1px) scale(0.98);
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* PDA Screen Off overlay */
+.pdaScreenOff {
+    position: absolute;
+    inset: calc(16.8% - 0.3px) 13.0% 0 13.0%; /* matches pdaScreen positioning */
+    z-index: 10004;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.pdaScreenOffInner {
+    background: radial-gradient(circle at 30% 20%, rgba(0,0,0,0.85), rgba(0,0,0,0.96));
+    border-radius: 8px;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #ddd;
+    pointer-events: none;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+}
+
+.pdaPowerIcon {
+    font-size: 28px;
+    color: #ff6b6b;
+}
+    
+.pdaOffText {
+    font-size: 13px;
+    color: #cfcfcf;
+}
+
+/* Slight hint to dim the screen behind the overlay */
+.pdaScreenOffVisible .map {
+    filter: brightness(0.2) saturate(0.6) contrast(0.9);
+}
+
+.pdaFrame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.pdaScreen {
+    position: absolute;
+    top: calc(16.8% - 0.3px);
+    left: 13.0%;
+    width: 75.6%;
+    height: 70.3%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+}
+
+/* --- Zoom Slider Styles --- */
+.zoomSliderContainer {
+    top: 105px;
+    left: 5px;
+    position: absolute;
+    top: 5px;
+    left: -30px;
+    z-index: 1000;
+    padding: 55px 10px;
+    margin-bottom: 10px; /* Add space below slider */
+}
+
+.zoomSliderWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Map Switch Button Styles --- */
+.mapSwitchContainer {
+    position: absolute;
+    top: 200px; /* Move down to add space from slider */
+    left: 10px;
+    z-index: 1000;
+    padding: 55px 10px;
+}
+
+/* --- SMALLER Legend Marks Menu Styles --- */
+.legendMenu {
+    position: absolute;
+    bottom: -50px;
+    left: 60px;
+    width: 220px; /* Reduced from 280px */
+    max-height: 280px; /* Reduced from 350px */
+    background-color: rgba(0, 0, 0, 0.95);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 1001;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+.legendMenuHeader {
+    padding: 10px 12px; /* Reduced padding */
+    border-bottom: 1px solid #444;
+    background-color: rgba(86, 86, 86, 0.946);
+}
+
+.legendMenuHeader h3 {
+    margin: 0;
+    color: #f1f1f1;
+    font-size: 12px; /* Smaller font */
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.4px; /* Reduced spacing */
+}
+
+.legendMenuList {
+    list-style: none;
+    padding: 8px; /* Reduced padding */
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Reduced gap */
+}
+
+/* Enhanced Legend Category Styles - Smaller */
+.legendCategoryItem {
+    margin-bottom: 6px; /* Reduced margin */
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 30, 30, 0.7);
+}
+
+.legendCategoryRow {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+    padding: 8px 10px; /* Reduced padding */
+    background: rgba(40, 40, 40, 0.8);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.legendCategoryRow:hover {
+    background: rgba(50, 50, 50, 0.9);
+}
+
+.legendCategoryLabel {
+    font-size: 11px; /* Smaller font */
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px; /* Reduced spacing */
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.categoryArrow {
+    font-size: 9px; /* Smaller arrow */
+    color: #666;
+    transition: transform 0.3s ease;
+    transform: rotate(0deg);
+    width: 14px;
+    text-align: center;
+}
+
+.categoryArrow.open {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+
+/* Sub-items list - Smaller */
+.subItemList {
+    list-style: none;
+    padding: 6px 0; /* Reduced padding */
+    margin: 0;
+    background: rgba(20, 20, 20, 0.8);
+    max-height: 160px; /* Reduced height */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #222;
+}
+
+.subItemList::-webkit-scrollbar {
+    width: 4px; /* Thinner scrollbar */
+}
+
+.subItemList::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+}
+
+.subItemList::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 2px; /* Smaller radius */
+}
+
+.subItem {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+    padding: 5px 10px 5px 20px; /* Reduced padding, adjusted indentation */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-left: 2px solid transparent;
+}
+
+.subItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.subItemCheckbox {
+    width: 12px; /* Smaller checkbox */
+    height: 12px; /* Smaller checkbox */
+    border: 2px solid #555;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.subItemCheckbox.checked {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.subItemCheckbox.checked::after {
+    content: '✓';
+    color: white;
+    font-size: 9px; /* Smaller checkmark */
+    font-weight: bold;
+}
+
+.subItemLabel {
+    font-size: 10px; /* Smaller font */
+    color: #cccccc;
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+}
+
+/* Enhanced checkbox styling - Smaller */
+.legendCheckbox {
+    width: 14px; /* Smaller checkbox */
+    height: 14px; /* Smaller checkbox */
+    border: 2px solid #666;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.legendCheckbox.checked {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.legendCheckbox.checked::after {
+    content: '✓';
+    color: white;
+    font-size: 10px; /* Smaller checkmark */
+    font-weight: bold;
+}
+
+/* Legend Button Container */
+.legendContainer {
+    position: absolute;
+    top: 260px; /* Positioned below the map switch button */
+    left: 10px;
+    z-index: 1000;
+    padding: 55px 10px;
+}
+
+/* Legend Button - matches map switch button style */
+.legendButton {
+    bottom: 100px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+    border: 2px solid #666;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.legendButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.legendButton:hover {
+    background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+    border-color: #777;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.legendButton:hover::before {
+    transform: translateX(100%);
+}
+
+.legendButton:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.mapSwitchButton {
+    bottom: 100px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+    border: 2px solid #666;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.mapSwitchButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.mapSwitchButton:hover {
+    background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+    border-color: #777;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.mapSwitchButton:hover::before {
+    transform: translateX(100%);
+}
+
+.mapSwitchButton:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* --- Map Selection Menu Styles (ORIGINAL SIZE) --- */
+.mapMenu {
+    position: absolute;
+    bottom: -70px;
+    left: 60px;
+    width: 200px; /* Original width */
+    max-height: 300px; /* Original height */
+    background-color: rgba(0, 0, 0, 0.9);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 1001;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+.mapMenuHeader {
+    padding: 12px 15px;
+    border-bottom: 1px solid #444;
+    background-color: rgba(86, 86, 86, 0.946);
+}
+
+.mapMenuHeader h3 {
+    margin: 0;
+    color: #f1f1f1;
+    font-size: 14px; /* Original font size */
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mapMenuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mapMenuItem {
+    padding: 10px 15px; /* Original padding */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px; /* Original font size */
+}
+
+.mapMenuItem:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #8c8c8c;
+}
+
+.mapMenuItem:last-child {
+    border-bottom: none;
+}
+
+.mapMenuItem.active {
+    background-color: rgba(145, 145, 145, 0.3);
+    color: #eaeaea;
+    font-weight: 600;
+}
+
+.zoomSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    height: 6px;
+    background: linear-gradient(to right, #cfcece, #797979);
+    outline: none;
+    transform: rotate(-90deg);
+    margin: 20px 0px;
+    
+}
+
+.zoomSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 15px;
+    background: #858585;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.zoomSlider::-webkit-slider-thumb:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.zoomSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #000;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.zoomSlider::-moz-range-thumb:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.zoomLabels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- Realistic PDA Blinking Lights --- */
+.pdaLight {
+    position: absolute;
+    width: 0.8vmin;
+    height: 0.8vmin;
+    border-radius: 50%;
+    z-index: 3;
+    transition: opacity 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(0.3px);
+}
+
+.pdaLightRed {
+    background: radial-gradient(
+        circle at 30% 30%,
+        #ff8c7a 0%,
+        #ff471a 40%,
+        #cc1a00 100%
+    );
+    box-shadow: 
+        0 0 12px 6px rgba(255, 71, 26, 0.8),
+        0 0 24px 12px rgba(255, 71, 26, 0.5),
+        0 0 36px 18px rgba(255, 71, 26, 0.2),
+        inset 0 0 8px 2px rgba(255, 255, 255, 0.3);
+    top: 10.1%;
+    left: 80.3%;
+    animation: redGlowPulse 4s infinite alternate;
+}
+
+.pdaLightGreen {
+    background: radial-gradient(
+        circle at 30% 30%,
+        #aaff67 0%,
+        #76ff03 40%,
+        #4da800 100%
+    );
+    box-shadow: 
+        0 0 12px 6px rgba(118, 255, 3, 0.7),
+        0 0 24px 12px rgba(118, 255, 3, 0.4),
+        0 0 36px 18px rgba(118, 255, 3, 0.2),
+        inset 0 0 8px 2px rgba(255, 255, 255, 0.3);
+    top: 10.2%;
+    left: 82.9%;
+    animation: greenGlowPulse 3s infinite alternate;
+}
+
+/* Enhanced glow animations */
+@keyframes redGlowPulse {
+    0% {
+        box-shadow: 
+            0 0 10px 5px rgba(255, 71, 26, 0.7),
+            0 0 20px 10px rgba(255, 71, 26, 0.4),
+            0 0 30px 15px rgba(255, 71, 26, 0.15),
+            inset 0 0 6px 1px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 
+            0 0 14px 8px rgba(255, 71, 26, 0.85),
+            0 0 28px 16px rgba(255, 71, 26, 0.55),
+            0 0 42px 22px rgba(255, 71, 26, 0.25),
+            inset 0 0 10px 3px rgba(255, 255, 255, 0.4);
+    }
+}
+
+@keyframes greenGlowPulse {
+    0% {
+        box-shadow: 
+            0 0 10px 5px rgba(118, 255, 3, 0.6),
+            0 0 20px 10px rgba(118, 255, 3, 0.35),
+            0 0 30px 15px rgba(118, 255, 3, 0.15),
+            inset 0 0 6px 1px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 
+            0 0 14px 8px rgba(118, 255, 3, 0.75),
+            0 0 28px 16px rgba(118, 255, 3, 0.45),
+            0 0 42px 22px rgba(118, 255, 3, 0.25),
+            inset 0 0 10px 3px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Light reflection effects */
+.pdaLight::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    filter: blur(0.5px);
+}
+
+/* Subtight light bleed effect on PDA frame */
+.pdaContainer::before {
+    content: '';
+    position: absolute;
+    top: 9.5%;
+    left: 79.5%;
+    width: 4.5%;
+    height: 2%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 71, 26, 0.15) 0%,
+        rgba(255, 71, 26, 0.05) 40%,
+        transparent 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+
+.pdaContainer::after {
+    content: '';
+    position: absolute;
+    top: 9.5%;
+    left: 82%;
+    width: 4.5%;
+    height: 2%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(118, 255, 3, 0.15) 0%,
+        rgba(118, 255, 3, 0.05) 40%,
+        transparent 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* --- Leaflet Map & UI Styles --- */
+.leafletControl {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.leafletControlScaleLine {
+    border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    border-top: none !important;
+    color: white !important;
+    background-color: transparent !important;
+    text-shadow: 1px 1px 2px black;
+}
+
+.uiContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.uiContainer > div {
+    position: absolute;
+    pointer-events: auto;
+}
+
+.menuWindow {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-size: 0.9em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.menuWindow h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-align: center;
+    color: #ffffff;
+}
+
+/* --- SMALLER Enhanced WTLO External Menu Styles WITH DRAGGABLE HEADER --- */
+.wtloMenuContainer {
+    z-index: 10002;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 200px; /* Reduced from 280px */
+    cursor: move;
+    user-select: none;
+}
+
+.wtloMenuContainer:active {
+    cursor: grabbing;
+}
+
+.wtloMenuToggle {
+    background: linear-gradient(160deg, #2a2a2a, #1a1a1a);
+    color: #ffffff;
+    border: 1px solid #444;
+    padding: 8px 12px; /* Reduced padding */
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px; /* Smaller font */
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    width: 100%; /* Full width */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.wtloMenuToggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.wtloMenuToggle:hover::before {
+    left: 100%;
+}
+
+.wtloMenuToggle:hover {
+    background: linear-gradient(160deg, #3a3a3a, #2a3a3a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+    border-color: #555;
+}
+
+.wtloMenuToggle::after {
+    content: '▼';
+    font-size: 9px; /* Smaller arrow */
+    margin-left: 4px;
+    transition: transform 0.3s ease;
+    color: #aaa;
+}
+
+.wtloMenuToggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.wtloMenu {
+    margin-top: 6px; /* Reduced margin */
+    width: 100%;
+    min-height: 200px; /* Reduced from 260px */
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid #333;
+    border-radius: 6px; /* Slightly smaller radius */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7); /* Smaller shadow */
+    color: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px); /* Reduced blur */
+    overflow: hidden;
+    user-select: none;
+}
+
+.wtloMenuHeader {
+    border-bottom: 1px solid #333;
+    padding: 10px 12px; /* Reduced padding */
+    background: linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%);
+    position: relative;
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wtloMenuHeader:active {
+    cursor: grabbing;
+}
+
+.wtloMenuHeader::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+.wtloMenuHeader h3 {
+    margin: 0;
+    font-size: 12px; /* Smaller font */
+    text-transform: uppercase;
+    color: #ffffff;
+    letter-spacing: 0.8px; /* Reduced letter spacing */
+    font-weight: 700;
+    text-align: left;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    flex: 1;
+}
+
+.dragHandleHint {
+    font-size: 9px;
+    color: #999;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #444;
+    margin-left: 8px;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.dragHandleHint:hover {
+    background: rgba(0, 0, 0, 0.5);
+    color: #ccc;
+    border-color: #555;
+}
+
+.wtloMenuContent {
+    padding: 12px; /* Reduced padding */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Reduced gap */
+}
+
+.wtloMenuSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Reduced gap */
+}
+
+.wtloMenuSectionTitle {
+    font-size: 11px; /* Smaller font */
+    color: #b8b8b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px; /* Reduced letter spacing */
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: 4px; /* Reduced padding */
+    border-bottom: 1px solid #2a2a2a;
+    text-align: center;
+    position: relative;
+}
+
+.wtloMenuSectionTitle::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px; /* Smaller width */
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #666, transparent);
+}
+
+.wtloDropdown {
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px; /* Smaller radius */
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3); /* Smaller shadow */
+}
+
+.wtloDropdownHeader {
+    padding: 10px 12px; /* Reduced padding */
+    background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
+    border-bottom: 1px solid #3a3a3a;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wtloDropdownHeader:hover {
+    background: linear-gradient(180deg, #353535 0%, #2d2d2d 100%);
+}
+
+.wtloDropdownTitle {
+    font-size: 12px; /* Smaller font */
+    font-weight: 600;
+    color: #f0f0f0;
+    margin: 0;
+    text-align: center;
+    flex: 1;
+    letter-spacing: 0.2px; /* Reduced letter spacing */
+}
+
+.wtloDropdownIcon {
+    font-size: 9px; /* Smaller icon */
+    color: #999;
+    transition: transform 0.3s ease;
+    width: 12px;
+    text-align: center;
+}
+
+.wtloDropdownIcon.open {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.wtloDropdownContent {
+    background: rgba(10, 10, 10, 0.9);
+    padding: 10px; /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Reduced gap */
+}
+
+/* Enhanced Skin Options - Smaller */
+.wtloSkinOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+    padding: 10px; /* Reduced padding */
+    border-radius: 5px; /* Smaller radius */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.wtloSkinOption::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%, rgba(0,0,0,0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.wtloSkinOption:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border-color: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Smaller shadow */
+}
+
+.wtloSkinOption:hover::before {
+    opacity: 1;
+}
+
+.wtloSkinOption.active {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+    border-color: #666;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.4); /* Smaller shadow */
+}
+
+.wtloSkinOption.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.wtloSkinPreview {
+    border-radius: 3px; /* Smaller radius */
+    border: 1px solid rgba(0,0,0,0.7);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.4); /* Smaller shadow */
+    transition: all 0.3s ease;
+    background: #1a1a1a;
+    padding: 2px; /* Reduced padding */
+    width: 60px; /* Explicit width */
+    height: 40px; /* Explicit height */
+    object-fit: cover;
+}
+
+.wtloSkinOption:hover .wtloSkinPreview {
+    transform: scale(1.05); /* Slightly smaller scale */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Smaller shadow */
+    border-color: rgba(255,255,255,0.1);
+}
+
+.wtloSkinOption.active .wtloSkinPreview {
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3); /* Smaller shadow */
+}
+
+.wtloSkinInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 3px; /* Reduced gap */
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+.wtloSkinName {
+    font-size: 11px; /* Smaller font */
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.3px; /* Reduced letter spacing */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.wtloSkinDescription {
+    font-size: 9px; /* Smaller font */
+    color: #999;
+    margin: 0;
+    text-align: center;
+    line-height: 1.2; /* Reduced line height */
+    max-width: 140px; /* Smaller max width */
+}
+
+.wtloSkinBadge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 2px 6px; /* Reduced padding */
+    border-radius: 8px; /* Smaller radius */
+    font-size: 8px; /* Smaller font */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px; /* Reduced letter spacing */
+    margin-top: 2px; /* Reduced margin */
+    box-shadow: 0 1px 4px rgba(102, 126, 234, 0.4); /* Smaller shadow */
+}
+
+/* Selection indicator */
+.wtloSkinOption.active .wtloSkinName {
+    background: linear-gradient(135deg, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* --- Custom Marker Styles --- */
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Small rats marker animation */
+@keyframes ratPulse {
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    }
+    50% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 18px rgba(220, 38, 38, 0.8);
+    }
+    100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    }
+}
+
+.custom-marker > div {
+    animation: ratPulse 2s infinite;
+}
+
+/* Marker popup styling */
+.leaflet-popup-content {
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    max-width: 200px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-popup-content strong {
+    color: #ff6b6b;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.leaflet-popup-content em {
+    color: #aaa;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.leaflet-popup-tip-container {
+    margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Marker hover effect */
+.custom-marker:hover > div {
+    animation: ratPulse 0.8s infinite;
+    filter: brightness(1.2);
+}
+
+/* --- Mark Editor Styles --- */
+.markEditorContainer {
+    position: fixed;
+    z-index: 10010;
+    cursor: move;
+    user-select: none;
+}
+
+.markEditorContainer:active {
+    cursor: grabbing;
+}
+
+/* Mark Editor Form Styles */
+.markEditorForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.markEditorLabel {
+    font-size: 11px;
+    color: #b8b8b8;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.markEditorInput {
+    width: 100%;
+    padding: 8px;
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    transition: border-color 0.3s ease;
+}
+
+.markEditorInput:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.markEditorTextarea {
+    width: 100%;
+    padding: 8px;
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.3s ease;
+}
+
+.markEditorTextarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.markEditorSelect {
+    width: 100%;
+    padding: 8px;
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.markEditorSelect:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.markEditorButton {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.markEditorButtonPrimary {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+}
+
+.markEditorButtonPrimary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.markEditorButtonSecondary {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+.markEditorButtonSecondary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.markEditorButtonDanger {
+    background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+}
+
+.markEditorButtonDanger:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.markEditorButtonWarning {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+}
+
+.markEditorButtonWarning:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Marker List Styles */
+.markEditorList {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+.markEditorListItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 4px;
+    background: rgba(30, 30, 30, 0.6);
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    border-left: 4px solid #ff0000;
+    transition: all 0.3s ease;
+}
+
+.markEditorListItem:hover {
+    background: rgba(40, 40, 40, 0.8);
+    transform: translateX(-2px);
+}
+
+.markEditorListItemContent {
+    flex: 1;
+}
+
+.markEditorListItemTitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.markEditorListItemSubtitle {
+    font-size: 9px;
+    color: #aaa;
+    margin-bottom: 2px;
+}
+
+.markEditorListItemDetails {
+    font-size: 8px;
+    color: #666;
+}
+
+.markEditorListItemActions {
+    display: flex;
+    gap: 4px;
+}
+
+.markEditorActionButton {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.markEditorActionEdit {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.markEditorActionEdit:hover {
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.markEditorActionDelete {
+    background: rgba(244, 67, 54, 0.2);
+    border-color: #f44336;
+    color: #f44336;
+}
+
+.markEditorActionDelete:hover {
+    background: rgba(244, 67, 54, 0.3);
+}
+
+/* Form Row Styles */
+.markEditorFormRow {
+    display: flex;
+    gap: 10px;
+}
+
+.markEditorFormRow > div {
+    flex: 1;
+}
+
+/* Color Picker */
+.markEditorColorPicker {
+    width: 100%;
+    height: 40px;
+    padding: 4px;
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Import/Export Button Container */
+.markEditorButtonGroup {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.markEditorFileInput {
+    display: none;
+}
+
+.markEditorFileLabel {
+    flex: 1;
+    padding: 8px;
+    background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.markEditorFileLabel:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Prevent text selection during drag */
+.wtloMenuContainer.dragging,
+.wtloMenuContainer.dragging * {
+    user-select: none !important;
+}
+
+/* Active drag state */
+.wtloMenuHeader:active {
+    cursor: grabbing !important;
+}
+
+.wtloMenuHeader.dragging {
+    background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%) !important;
+}
+
+/* Make sure form elements are not draggable */
+.markEditorForm *,
+.markEditorList *,
+.markEditorButton *,
+.wtloMenuContent *:not(.wtloMenuHeader):not(.wtloMenuHeader *) {
+    cursor: auto !important;
+    user-select: auto !important;
+}
+
+/* Form input focus states */
+.markEditorInput:focus,
+.markEditorSelect:focus,
+.markEditorTextarea:focus {
+    outline: 2px solid #667eea !important;
+    outline-offset: 2px !important;
+}
+
+/* Button hover effects */
+.markEditorButton:hover,
+.markEditorActionButton:hover,
+.markEditorFileLabel:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.markEditorButton:active,
+.markEditorActionButton:active,
+.markEditorFileLabel:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Responsive adjustments for mark editor */
+@media (max-width: 768px) {
+    .wtloMenuContainer {
+        min-width: 280px !important;
+        left: 50% !important;
+        transform: translateX(-50%);
+        margin: 0 auto;
+    }
+    
+    .wtloMenu {
+        width: 280px !important;
+    }
+    
+    .markEditorFormRow {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+}
+
+/* Ensure mark editor stays above other elements */
+.wtloMenuContainer[style*="z-index"] {
+    z-index: 10010 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .wtloMenuContainer {
+        min-width: 180px; /* Even smaller on smaller screens */
+    }
+}
+
+/* Scrollbar styling for mark editor */
+.markEditorList::-webkit-scrollbar {
+    width: 4px;
+}
+
+.markEditorList::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+}
+
+.markEditorList::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 2px;
+}

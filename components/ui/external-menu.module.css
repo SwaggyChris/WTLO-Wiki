@@ -1,0 +1,43 @@
+.externalMenu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  z-index: 1001;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 250px;
+}
+
+.menuSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuSection h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+.select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  font-size: 14px;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #777;
+}
