@@ -5,7 +5,16 @@
   "hints": {
     "no-inline-styles": "off",
     "axe/name-role-value": "off",
+<<<<<<< HEAD
     "axe/forms": "off",
+=======
+    "axe/forms": [
+      "default",
+      {
+        "label": "off"
+      }
+    ],
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     "compat-api/css": "off",
     "typescript-config/consistent-casing": "off",
     "axe/aria": [

@@ -236,6 +236,10 @@
 }
 
 /* --- Zoom Slider Styles --- */
+<<<<<<< HEAD
+=======
+
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 .zoomSliderContainer {
     top: 105px;
     left: 5px;
@@ -881,12 +885,15 @@
     flex-direction: column;
     align-items: flex-start;
     min-width: 200px; /* Reduced from 280px */
+<<<<<<< HEAD
     cursor: move;
     user-select: none;
 }
 
 .wtloMenuContainer:active {
     cursor: grabbing;
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 }
 
 .wtloMenuToggle {
@@ -1008,6 +1015,7 @@
     border: 1px solid #444;
     margin-left: 8px;
     white-space: nowrap;
+<<<<<<< HEAD
     transition: all 0.3s ease;
 }
 
@@ -1015,6 +1023,8 @@
     background: rgba(0, 0, 0, 0.5);
     color: #ccc;
     border-color: #555;
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 }
 
 .wtloMenuContent {
@@ -1237,6 +1247,16 @@
     background-clip: text;
 }
 
+<<<<<<< HEAD
+=======
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .wtloMenuContainer {
+        min-width: 180px; /* Even smaller on smaller screens */
+    }
+}
+
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 /* --- Custom Marker Styles --- */
 .custom-marker {
     background: transparent !important;
@@ -1301,6 +1321,7 @@
 .custom-marker:hover > div {
     animation: ratPulse 0.8s infinite;
     filter: brightness(1.2);
+<<<<<<< HEAD
 }
 
 /* --- Mark Editor Styles --- */
@@ -1653,4 +1674,6 @@
 .markEditorList::-webkit-scrollbar-thumb {
     background-color: #444;
     border-radius: 2px;
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 }

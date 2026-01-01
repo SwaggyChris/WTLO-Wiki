@@ -15,6 +15,7 @@ import styles from "./map.module.css"
 
 // Import separated data and functions
 import { availableMaps, initialLegendCategories } from "./mapData"
+<<<<<<< HEAD
 import { updateMarkers, coordinatesToGrid, getIconForCategory } from "./markers" //
 
 const markerIcons = [
@@ -24,6 +25,9 @@ const markerIcons = [
   "Portal.png", "PVP Zone.png", "Quest.png", "QuestPoint.png", "Radiation.png", "Safezone.png",
   "Simple Marker.png", "TakeQuestPoint.png", "Unknown Area.png", "Water.png", "WaterSource.png"
 ];
+=======
+import { updateMarkers } from "./markers"
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 
 export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null)
@@ -34,14 +38,21 @@ export default function MapPage() {
   const [showMapMenu, setShowMapMenu] = useState(false)
   const [showLegendMenu, setShowLegendMenu] = useState(false)
   const [showWtlomenu, setShowWtlomenu] = useState(false)
+<<<<<<< HEAD
   const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Solar_City_Town.png")
+=======
+  const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Default.png")
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   const [pdaSkin, setPdaSkin] = useState<string>('/PDA.png')
   const [pdaOn, setPdaOn] = useState<boolean>(true)
   const [pdaNatural, setPdaNatural] = useState<{w:number,h:number}|null>(null)
   const [btnPressed, setBtnPressed] = useState(false)
   const [skinDropdownOpen, setSkinDropdownOpen] = useState(true)
+<<<<<<< HEAD
   const [disclosedMarkerId, setDisclosedMarkerId] = useState<string | null>(null)
   const [showIconPicker, setShowIconPicker] = useState(false);
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   
   // Drag functionality states for WTLO Menu
   const [wtloMenuPosition, setWtloMenuPosition] = useState({ x: 20, y: 100 })
@@ -57,6 +68,7 @@ export default function MapPage() {
   const [markers, setMarkers] = useState<any[]>([])
   const [leafletRef, setLeafletRef] = useState<any>(null)
 
+<<<<<<< HEAD
   // Custom markers from editor
   const [customMarkers, setCustomMarkers] = useState<any[]>([])
 
@@ -73,6 +85,8 @@ export default function MapPage() {
   
   // ---------------------------
 
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   // Updated Legend categories state structure with nested sub-items
   const [legendCategories, setLegendCategories] = useState<Record<string, {
     checked: boolean;
@@ -148,7 +162,11 @@ export default function MapPage() {
   }, [isExternalDragging, externalDragStart])
 
   // Function to update markers based on legend and map state
+<<<<<<< HEAD
   const updateMarkersHandler = async (customMarkersData: any[] = []) => {
+=======
+  const updateMarkersHandler = async () => {
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     if (!mapInstanceRef.current || !leafletRef) return
     
     // Clear existing markers
@@ -156,7 +174,11 @@ export default function MapPage() {
       mapInstanceRef.current?.removeLayer(marker)
     });
     
+<<<<<<< HEAD
     // Use the imported updateMarkers function for default markers
+=======
+    // Use the imported updateMarkers function
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     await updateMarkers(
       mapInstanceRef.current,
       leafletRef,
@@ -164,6 +186,7 @@ export default function MapPage() {
       legendCategories,
       setMarkers
     );
+<<<<<<< HEAD
     
     // Add custom markers if any
     customMarkersData.forEach((markerInfo: any) => {
@@ -201,10 +224,13 @@ export default function MapPage() {
         }
       }
     });
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   }
 
   // Update markers when conditions change
   useEffect(() => {
+<<<<<<< HEAD
     updateMarkersHandler(customMarkers)
   }, [currentMap, legendCategories, customMarkers, editorMode])
 
@@ -311,6 +337,10 @@ export default function MapPage() {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
+=======
+    updateMarkersHandler()
+  }, [currentMap, legendCategories.Monsters?.subItems['Small Rats']])
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 
   // [Rest of the useEffect for map initialization remains the same...]
   useEffect(() => {
@@ -344,7 +374,11 @@ export default function MapPage() {
         [imageHeight, imageWidth],
       ]
 
+<<<<<<< HEAD
       Leaflet.imageOverlay(`/${currentMap}`, bounds).addTo(map)
+=======
+  Leaflet.imageOverlay(`/${currentMap}`, bounds).addTo(map)
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 
       map.setView([2048, 2048], -2)
       map.setMaxBounds(bounds)
@@ -362,7 +396,11 @@ export default function MapPage() {
         setZoomLevel(map.getZoom())
       })
 
+<<<<<<< HEAD
       // [Rest of the lights logic...]
+=======
+      // [Rest of the lights logic remains the same...]
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
       if (redLightRef.current && greenLightRef.current) {
         redLightRef.current.style.opacity = "0.1"
         greenLightRef.current.style.opacity = "0.8"
@@ -556,6 +594,10 @@ export default function MapPage() {
     setShowWtlomenu(!showWtlomenu)
   }
 
+<<<<<<< HEAD
+=======
+  // [Rest of the component JSX remains exactly the same...]
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   return (
     <div className={styles.centerPage}>
       <div className={styles.mapTitleWrapper}>
@@ -595,8 +637,12 @@ export default function MapPage() {
         ></div>
 
         <div className={`${styles.pdaScreen} ${!pdaOn ? styles.pdaScreenOffVisible : ''}`}>
+<<<<<<< HEAD
           {/* UPDATED: Added ID for cursor manipulation */}
           <div ref={mapRef} id="map-container-div" className={styles.map} aria-hidden={!pdaOn}></div>
+=======
+          <div ref={mapRef} className={styles.map} aria-hidden={!pdaOn}></div>
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
           
           <div className={styles.zoomSliderContainer}>
             <div className={styles.zoomSliderWrapper}>
@@ -647,7 +693,11 @@ export default function MapPage() {
               onClick={toggleLegendMenu}
               className={styles.legendButton}
             >
+<<<<<<< HEAD
              Legend
+=======
+              Map Legend
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
             </button>
             
             {showLegendMenu && (
@@ -785,8 +835,11 @@ export default function MapPage() {
           </div>
           
           <div className={styles.wtloMenuContent}>
+<<<<<<< HEAD
             
             {/* EXISTING SKIN CHANGER */}
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
             <div className={styles.wtloMenuSection}>
               <div className={styles.wtloDropdown}>
                 <div 
@@ -864,6 +917,7 @@ export default function MapPage() {
                 )}
               </div>
             </div>
+<<<<<<< HEAD
 
             <hr style={{borderColor: 'rgba(255,255,255,0.1)', margin: '10px 0'}} />
 
@@ -1141,12 +1195,19 @@ export default function MapPage() {
               </div>
             </div>
 
+=======
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
           </div>
         </div>
       )}
     </div>
+<<<<<<< HEAD
 
     
     </div>  
     )
+=======
+    </div>
+  )
+>>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 }
