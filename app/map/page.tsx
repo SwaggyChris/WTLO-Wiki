@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, X, Upload, Trash2, Save, Plus } from "lucide-react"
+import { ArrowLeft, Upload, X, Image as ImageIcon, Hash, Trash2, Save, XCircle, Download, Eye, EyeOff } from "lucide-react"
 // Leaflet is dynamically imported on the client. Avoid importing at top-level to prevent server-side window access.
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
@@ -51,602 +51,6 @@ const markerIcons = [
   "Weapons.png"
 ];
 
-// New standalone marker editor component
-const StandaloneMarkerEditor = ({ 
-  editorMode, 
-  setEditorMode, 
-  pendingMarker, 
-  setPendingMarker,
-  legendCategories,
-  currentMap,
-  customMarkers,
-  onSaveMarkers,
-  onRemoveMarker
-}: any) => {
-  const [editorForm, setEditorForm] = useState<any>({
-    category: '',
-    subCategory: '',
-    grid: '',
-    description: '',
-    imageSlots: [] as Array<{ id: string; file: File | null; preview: string; title: string; description: string }>
-  });
-
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState({ x: 50, y: 150 });
-  const [showIconPicker, setShowIconPicker] = useState(false);
-  const [selectedIcon, setSelectedIcon] = useState<string>('/markers/Simple Marker.png');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Initialize form when pendingMarker changes
-  useEffect(() => {
-    if (pendingMarker) {
-      setEditorForm({
-        category: Object.keys(legendCategories)[0] || '',
-        subCategory: '',
-        grid: pendingMarker.grid || '',
-        description: '',
-        imageSlots: []
-      });
-      setSelectedIcon('/markers/Simple Marker.png');
-    }
-  }, [pendingMarker, legendCategories]);
-
-  // Drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
-
-  // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const newSlots = [...editorForm.imageSlots];
-    
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newSlot = {
-          id: Date.now().toString() + Math.random(),
-          file,
-          preview: reader.result as string,
-          title: '',
-          description: ''
-        };
-        newSlots.push(newSlot);
-        setEditorForm((prev: any) => ({
-          ...prev,
-          imageSlots: newSlots
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeImageSlot = (id: string) => {
-    setEditorForm((prev: any) => ({
-      ...prev,
-      imageSlots: prev.imageSlots.filter((slot: any) => slot.id !== id)
-    }));
-  };
-
-  const updateImageSlot = (id: string, field: string, value: string) => {
-    setEditorForm((prev: any) => ({
-      ...prev,
-      imageSlots: prev.imageSlots.map((slot: any) => 
-        slot.id === id ? { ...slot, [field]: value } : slot
-      )
-    }));
-  };
-
-  const handleSaveMarker = () => {
-    if (!pendingMarker) return;
-
-    // Build popup HTML with images on right side
-    const popupId = `marker-popup-${pendingMarker.id}`;
-    
-    // Images HTML for the right side
-    const imagesHtml = editorForm.imageSlots.length > 0 ? `
-      <div style="float: right; margin-left: 15px; width: 150px;">
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${editorForm.imageSlots.map((slot: any) => `
-            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
-              <img src="${slot.preview}" alt="${slot.title || 'Image'}" 
-                   style="width: 100%; height: auto; border-radius: 3px; margin-bottom: 6px;" />
-              ${slot.title ? `<div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">${slot.title}</div>` : ''}
-              ${slot.description ? `<div style="font-size: 11px; color: #aaa;">${slot.description}</div>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    ` : '';
-
-    // Description HTML for the left side
-    const descriptionHtml = `
-      <div style="overflow: hidden;">
-        ${imagesHtml}
-        <div>
-          <strong style="font-size: 14px; color: #fff; display: block; margin-bottom: 8px;">${editorForm.description.split('\n')[0] || 'Marker'}</strong>
-          <div style="font-size: 12px; line-height: 1.5; color: #ccc; white-space: pre-wrap;">
-            ${editorForm.description.replace(/\n/g, '<br/>')}
-          </div>
-          ${editorForm.grid ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #aaa;">Grid: ${editorForm.grid}</div>` : ''}
-        </div>
-      </div>
-    `;
-
-    const finalMarker = {
-      ...pendingMarker,
-      category: editorForm.category,
-      subCategory: editorForm.subCategory,
-      grid: editorForm.grid,
-      description: editorForm.description,
-      icon: selectedIcon,
-      imageSlots: editorForm.imageSlots,
-      popup: `<div id="${popupId}" style="min-width: 300px;">${descriptionHtml}</div>`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    const updatedList = [...customMarkers, finalMarker];
-    onSaveMarkers(updatedList);
-    setPendingMarker(null);
-    setEditorForm({
-      category: '',
-      subCategory: '',
-      grid: '',
-      description: '',
-      imageSlots: []
-    });
-  };
-
-  if (!editorMode) return null;
-
-  return (
-    <div 
-      className="standalone-marker-editor"
-      style={{
-        position: 'fixed',
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: '350px',
-        backgroundColor: 'rgba(20, 20, 20, 0.95)',
-        border: '1px solid #444',
-        borderRadius: '8px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-        zIndex: 10010,
-        backdropFilter: 'blur(10px)',
-        cursor: isDragging ? 'grabbing' : 'default',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Header with drag handle */}
-      <div 
-        style={{
-          padding: '12px 16px',
-          backgroundColor: 'rgba(40, 40, 40, 0.9)',
-          borderBottom: '1px solid #444',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: 'grab',
-          userSelect: 'none'
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <h3 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: '600' }}>
-          Marker Editor {pendingMarker && `- ${pendingMarker.grid}`}
-        </h3>
-        <button
-          onClick={() => setEditorMode(false)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#aaa',
-            cursor: 'pointer',
-            padding: '4px',
-            borderRadius: '4px'
-          }}
-        >
-          <X size={18} />
-        </button>
-      </div>
-
-      {/* Editor Content */}
-      <div style={{ padding: '16px', maxHeight: '70vh', overflowY: 'auto' }}>
-        {pendingMarker ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Basic Information */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '12px', color: '#ccc' }}>Coordinates</label>
-              <input
-                type="text"
-                value={`X: ${pendingMarker.coordinates?.x}, Y: ${pendingMarker.coordinates?.y}`}
-                readOnly
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid #444',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  color: '#aaa',
-                  fontSize: '12px'
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '12px', color: '#ccc' }}>Grid ID</label>
-              <input
-                type="text"
-                value={editorForm.grid}
-                onChange={(e) => setEditorForm({ ...editorForm, grid: e.target.value })}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  color: '#fff',
-                  fontSize: '12px'
-                }}
-                placeholder="Enter grid ID (e.g., A1)"
-              />
-            </div>
-
-            {/* Category Selection */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '12px', color: '#ccc' }}>Category</label>
-                <select
-                  value={editorForm.category}
-                  onChange={(e) => setEditorForm({ ...editorForm, category: e.target.value, subCategory: '' })}
-                  style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid #555',
-                    borderRadius: '4px',
-                    padding: '8px',
-                    color: '#fff',
-                    fontSize: '12px',
-                    width: '100%'
-                  }}
-                >
-                  <option value="">Select Category</option>
-                  {Object.keys(legendCategories).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '12px', color: '#ccc' }}>Sub Category</label>
-                <select
-                  value={editorForm.subCategory}
-                  onChange={(e) => setEditorForm({ ...editorForm, subCategory: e.target.value })}
-                  disabled={!editorForm.category}
-                  style={{
-                    background: editorForm.category ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
-                    border: '1px solid #555',
-                    borderRadius: '4px',
-                    padding: '8px',
-                    color: editorForm.category ? '#fff' : '#666',
-                    fontSize: '12px',
-                    width: '100%'
-                  }}
-                >
-                  <option value="">Select Sub Category</option>
-                  {editorForm.category && legendCategories[editorForm.category]?.subItems && 
-                    Object.keys(legendCategories[editorForm.category].subItems).map(sub => (
-                      <option key={sub} value={sub}>{sub}</option>
-                    ))
-                  }
-                </select>
-              </div>
-            </div>
-
-            {/* Icon Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '12px', color: '#ccc' }}>Marker Icon</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div 
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '2px solid #555',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    overflow: 'hidden'
-                  }}
-                  onClick={() => setShowIconPicker(!showIconPicker)}
-                >
-                  <Image 
-                    src={selectedIcon} 
-                    alt="Selected Icon" 
-                    width={32} 
-                    height={32}
-                    style={{ objectFit: 'contain' }}
-                  />
-                </div>
-                <button
-                  onClick={() => setShowIconPicker(!showIconPicker)}
-                  style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid #555',
-                    borderRadius: '4px',
-                    padding: '8px 12px',
-                    color: '#fff',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    flex: 1
-                  }}
-                >
-                  Choose Icon
-                </button>
-              </div>
-
-              {showIconPicker && (
-                <div style={{
-                  background: 'rgba(0,0,0,0.9)',
-                  border: '1px solid #444',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  marginTop: '8px',
-                  maxHeight: '200px',
-                  overflowY: 'auto'
-                }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {markerIcons.map(iconFile => (
-                      <button
-                        key={iconFile}
-                        onClick={() => {
-                          setSelectedIcon(`/markers/${iconFile}`);
-                          setShowIconPicker(false);
-                        }}
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: selectedIcon === `/markers/${iconFile}` ? '2px solid #4CAF50' : '1px solid #444',
-                          borderRadius: '4px',
-                          padding: '4px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Image 
-                          src={`/markers/${iconFile}`} 
-                          alt={iconFile} 
-                          width={24} 
-                          height={24}
-                          style={{ objectFit: 'contain' }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Description */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '12px', color: '#ccc' }}>Description</label>
-              <textarea
-                value={editorForm.description}
-                onChange={(e) => setEditorForm({ ...editorForm, description: e.target.value })}
-                placeholder="Enter detailed description..."
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  padding: '12px',
-                  color: '#fff',
-                  fontSize: '12px',
-                  minHeight: '100px',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-
-            {/* Image Upload Section */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ fontSize: '12px', color: '#ccc' }}>Additional Images</label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  multiple
-                  style={{ display: 'none' }}
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid #555',
-                    borderRadius: '4px',
-                    padding: '6px 12px',
-                    color: '#fff',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Upload size={14} />
-                  Upload Images
-                </button>
-              </div>
-
-              {/* Image Slots */}
-              {editorForm.imageSlots.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {editorForm.imageSlots.map((slot: any) => (
-                    <div 
-                      key={slot.id}
-                      style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid #444',
-                        borderRadius: '6px',
-                        padding: '12px',
-                        display: 'flex',
-                        gap: '12px'
-                      }}
-                    >
-                      <div style={{ flexShrink: 0 }}>
-                        <img 
-                          src={slot.preview} 
-                          alt="Preview" 
-                          style={{
-                            width: '60px',
-                            height: '60px',
-                            objectFit: 'cover',
-                            borderRadius: '4px'
-                          }}
-                        />
-                      </div>
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <input
-                          type="text"
-                          value={slot.title}
-                          onChange={(e) => updateImageSlot(slot.id, 'title', e.target.value)}
-                          placeholder="Image title (optional)"
-                          style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid #444',
-                            borderRadius: '4px',
-                            padding: '6px',
-                            color: '#fff',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <textarea
-                          value={slot.description}
-                          onChange={(e) => updateImageSlot(slot.id, 'description', e.target.value)}
-                          placeholder="Image description (optional)"
-                          style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid #444',
-                            borderRadius: '4px',
-                            padding: '6px',
-                            color: '#fff',
-                            fontSize: '12px',
-                            minHeight: '40px',
-                            resize: 'vertical'
-                          }}
-                        />
-                      </div>
-                      <button
-                        onClick={() => removeImageSlot(slot.id)}
-                        style={{
-                          background: 'rgba(255,0,0,0.2)',
-                          border: '1px solid #f44336',
-                          borderRadius: '4px',
-                          color: '#f44336',
-                          cursor: 'pointer',
-                          padding: '4px 8px',
-                          height: 'fit-content'
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              <button
-                onClick={handleSaveMarker}
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  color: '#fff',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <Save size={16} />
-                Save Marker
-              </button>
-              <button
-                onClick={() => {
-                  setPendingMarker(null);
-                  setEditorForm({
-                    category: '',
-                    subCategory: '',
-                    grid: '',
-                    description: '',
-                    imageSlots: []
-                  });
-                }}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid #555',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  color: '#fff',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📍</div>
-            <h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Click on the Map</h4>
-            <p style={{ fontSize: '12px', margin: 0 }}>
-              Click anywhere on the map to place a new marker. The editor will open here.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null)
   const redLightRef = useRef<HTMLDivElement>(null)
@@ -661,9 +65,8 @@ export default function MapPage() {
   const [pdaOn, setPdaOn] = useState<boolean>(true)
   const [pdaNatural, setPdaNatural] = useState<{w:number,h:number}|null>(null)
   const [btnPressed, setBtnPressed] = useState(false)
-  const [skinDropdownOpen, setSkinDropdownOpen] = useState(false)
+  const [skinDropdownOpen, setSkinDropdownOpen] = useState(true)
   const [disclosedMarkerId, setDisclosedMarkerId] = useState<string | null>(null)
-  const [showIconPicker, setShowIconPicker] = useState(false);
   
   // Drag functionality states for WTLO Menu
   const [wtloMenuPosition, setWtloMenuPosition] = useState({ x: 20, y: 100 })
@@ -675,6 +78,12 @@ export default function MapPage() {
   const [isExternalDragging, setIsExternalDragging] = useState(false)
   const [externalDragStart, setExternalDragStart] = useState({ x: 0, y: 0 })
 
+  // MARKER EDITOR STANDALONE STATES
+  const [showMarkerEditor, setShowMarkerEditor] = useState(true)
+  const [markerEditorPosition, setMarkerEditorPosition] = useState({ x: 20, y: 120 })
+  const [isMarkerEditorDragging, setIsMarkerEditorDragging] = useState(false)
+  const [markerEditorDragStart, setMarkerEditorDragStart] = useState({ x: 0, y: 0 })
+
   // Marker system states
   const [markers, setMarkers] = useState<any[]>([])
   const [leafletRef, setLeafletRef] = useState<any>(null)
@@ -685,7 +94,19 @@ export default function MapPage() {
   // --- MARKER EDITOR STATE ---
   const [editorMode, setEditorMode] = useState(false)
   const [pendingMarker, setPendingMarker] = useState<any | null>(null)
-
+  const [editorForm, setEditorForm] = useState<any>({
+    id: '',
+    grid: '',
+    customField: '',
+    category: '',
+    subCategory: '',
+    iconSlots: [] as any[],
+    title: '',
+    description: '',
+    hashtags: '',
+    descriptionImage: null as string | null
+  })
+  
   // ---------------------------
   // Updated Legend categories state structure with nested sub-items
   const [legendCategories, setLegendCategories] = useState<Record<string, {
@@ -736,6 +157,94 @@ export default function MapPage() {
     setIsExternalDragging(false)
   }
 
+  // Drag functionality for Standalone Marker Editor
+  const handleMarkerEditorMouseDown = (e: React.MouseEvent) => {
+    setIsMarkerEditorDragging(true)
+    setMarkerEditorDragStart({
+      x: e.clientX - markerEditorPosition.x,
+      y: e.clientY - markerEditorPosition.y
+    })
+  }
+
+  const handleMarkerEditorMouseMove = (e: React.MouseEvent) => {
+    if (!isMarkerEditorDragging) return
+    setMarkerEditorPosition({
+      x: e.clientX - markerEditorDragStart.x,
+      y: e.clientY - markerEditorDragStart.y
+    })
+  }
+
+  const handleMarkerEditorMouseUp = () => {
+    setIsMarkerEditorDragging(false)
+  }
+
+  // Function to handle description image upload
+  const handleDescriptionImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file')
+      return
+    }
+
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size must be less than 2MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string
+      setEditorForm((prev: any) => ({
+        ...prev,
+        descriptionImage: dataUrl
+      }))
+    }
+    
+    reader.readAsDataURL(file)
+  }
+
+  // Function to remove description image
+  const removeDescriptionImage = () => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      descriptionImage: null
+    }))
+  }
+
+  // Function to insert image into description at cursor position
+  const insertImageIntoDescription = (imageUrl: string) => {
+    const textareaId = 'description-textarea'
+    const textarea = document.getElementById(textareaId) as HTMLTextAreaElement
+    
+    if (!textarea) return
+    
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const value = textarea.value
+    
+    // Create image HTML
+    const imageHtml = `\n<img src="${imageUrl}" alt="Custom Image" style="max-width: 300px; max-height: 200px; border-radius: 4px; margin: 10px 0;" />\n`
+    
+    const newValue = value.substring(0, start) + imageHtml + value.substring(end)
+    
+    // Update textarea value
+    textarea.value = newValue
+    
+    // Update form state
+    setEditorForm((prev: any) => ({
+      ...prev,
+      description: newValue
+    }))
+    
+    // Focus and set cursor position after inserted image
+    textarea.focus()
+    textarea.selectionStart = textarea.selectionEnd = start + imageHtml.length
+  }
+
   // Add event listeners for external menu dragging
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -761,6 +270,31 @@ export default function MapPage() {
     }
   }, [isExternalDragging, externalDragStart])
 
+  // Add event listeners for marker editor dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isMarkerEditorDragging) return
+      setMarkerEditorPosition({
+        x: e.clientX - markerEditorDragStart.x,
+        y: e.clientY - markerEditorDragStart.y
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsMarkerEditorDragging(false)
+    }
+
+    if (isMarkerEditorDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isMarkerEditorDragging, markerEditorDragStart])
+
   // Function to update markers based on legend and map state
   const updateMarkersHandler = async (customMarkersData: any[] = []) => {
     if (!mapInstanceRef.current || !leafletRef) return
@@ -780,10 +314,9 @@ export default function MapPage() {
     
     // Add custom markers if any
     customMarkersData.forEach((markerInfo: any) => {
-      const { map, category, subCategory, grid, coordinates, icon, popup } = markerInfo;
+      const { map, category, subCategory, grid, coordinates, iconSlots, icon, popup } = markerInfo;
 
       if (map === currentMap) {
-        // Only show if legend category is checked or we are in editor mode (optional, currently strictly following legend)
         const isVisible = legendCategories[category]?.subItems[subCategory] || editorMode; 
         
         if (isVisible) {
@@ -791,16 +324,14 @@ export default function MapPage() {
           if (coordinates) {
             coords = coordinates;
           } else if (grid) {
-            // Re-use logic or import logic (we imported coordinatesToGrid but gridToCoordinates is in markers.ts too)
-            // Ideally import gridToCoordinates, but we can rely on `coordinates` being present for custom markers we just made
-             // For safety, let's just use the coordinates we saved
-             coords = coordinates;
+            coords = coordinates;
           } else {
             return; 
           }
           
+          const chosenIconUrl = (iconSlots && iconSlots.length && iconSlots[0]) ? (typeof iconSlots[0] === 'string' ? iconSlots[0] : iconSlots[0].icon) : icon;
           const customIcon = leafletRef.icon({
-            iconUrl: icon,
+            iconUrl: chosenIconUrl,
             iconSize: [24, 24],
             iconAnchor: [12, 24],
             popupAnchor: [0, -24]
@@ -826,7 +357,6 @@ export default function MapPage() {
   // Handle custom markers from editor
   const handleSaveCustomMarkers = (newMarkers: any[]) => {
     setCustomMarkers(newMarkers);
-    // Update markers on the map
     updateMarkersHandler(newMarkers);
   };
 
@@ -839,26 +369,45 @@ export default function MapPage() {
     const onMapClick = (e: any) => {
       if (!editorMode) return;
 
-      const { lat, lng } = e.latlng; // In Simple CRS, lat is Y, lng is X
+      const { lat, lng } = e.latlng;
       
       // Calculate Grid
       const gridId = coordinatesToGrid(lng, lat);
       
       // Create a temporary visual marker
-      const tempId = `marker-${Date.now()}`;
+      const tempId = `marker_${Date.now()}`;
       const newMarker = {
         id: tempId,
         map: currentMap,
         coordinates: { x: Math.round(lng), y: Math.round(lat) },
-        grid: gridId
+        grid: gridId,
+        // Default values until form is submitted
+        category: '',
+        subCategory: '',
+        description: '',
+        popup: '<strong>New Marker</strong>',
+        icon: '/markers/Simple Marker.png'
       };
 
       setPendingMarker(newMarker);
+      
+      // Reset form with auto-filled ID and Grid
+      setEditorForm({
+        id: tempId,
+        grid: gridId,
+        customField: '',
+        category: '',
+        subCategory: '',
+        iconSlots: [],
+        title: '',
+        description: '',
+        hashtags: '',
+        descriptionImage: null
+      });
     };
 
     if (editorMode) {
       map.on('click', onMapClick);
-      // Change cursor to crosshair to indicate edit mode
       document.getElementById('map-container-div')?.style.setProperty('cursor', 'crosshair');
     } else {
       map.off('click', onMapClick);
@@ -869,7 +418,82 @@ export default function MapPage() {
     return () => {
       map.off('click', onMapClick);
     };
-  }, [editorMode, currentMap, leafletRef]);
+  }, [editorMode, currentMap, leafletRef, legendCategories]);
+
+  // --- SAVE MARKER FUNCTION ---
+  const handleSaveMarker = () => {
+    if (!pendingMarker) return;
+
+    // Create main icon slot with form data
+    const mainIconSlot = {
+      icon: editorForm.iconSlots[0]?.icon || '/markers/Simple Marker.png',
+      title: editorForm.title,
+      description: editorForm.description,
+      subCategory: editorForm.subCategory,
+      hashtags: editorForm.hashtags,
+      descriptionImage: editorForm.descriptionImage
+    };
+
+    const iconSlots = [mainIconSlot, ...(editorForm.iconSlots.slice(1) || [])];
+    const hashtagsArr = editorForm.hashtags ? editorForm.hashtags.split(',').map((s:string)=>s.trim()).filter(Boolean) : [];
+
+    // Build popup HTML
+    const popupId = `marker-popup-${editorForm.id}`;
+    
+    // Secondary icons
+    const iconsHtml = iconSlots.slice(1).map((s: any, idx: number) => {
+      const safeTitle = (s.description || '').replace(/"/g, '&quot;');
+      const onclick = `(function(){const root=document.getElementById('${popupId}'); if(!root) return; Array.from(root.querySelectorAll('.slot-content')).forEach(function(el){ el.style.display='none'; }); var target=root.querySelector('#${popupId}-slot-${idx+1}'); if(target) target.style.display='block';})()`;
+      return `<img src="${s.icon}" title="${safeTitle}" style="width:22px;height:22px;margin:2px;cursor:pointer;border:1px solid #444;border-radius:3px" onclick="${onclick}" />`;
+    }).join('');
+
+    // Slot content
+    const slotsContentHtml = iconSlots.map((s: any, idx: number) => {
+      const hashtagsForSlot = (s.hashtags || '') ? s.hashtags.split(',').map((h:string)=>h.trim()).filter(Boolean).map((h:string)=>`<span style="margin-right:6px;color:#9ad">${h}</span>`).join('') : '';
+      const title = s.title || s.subCategory || '';
+      const desc = s.description || '';
+      const display = idx === 0 ? 'block' : 'none';
+      const imageHtml = s.descriptionImage ? `<div style="margin: 10px 0;"><img src="${s.descriptionImage}" alt="Description" style="max-width: 100%; border-radius: 4px;" /></div>` : '';
+      return `<div id="${popupId}-slot-${idx}" class="slot-content" style="display:${display};margin-top:6px;text-align:left"><div style="font-weight:bold">${title}</div><div style="margin-top:4px">${desc}</div>${imageHtml}<div style="margin-top:6px">${hashtagsForSlot}</div></div>`;
+    }).join('');
+
+    const popupHtml = `<div id="${popupId}">${iconsHtml}${slotsContentHtml}</div>`;
+
+    const finalMarker = {
+      ...pendingMarker,
+      id: editorForm.id,
+      grid: editorForm.grid,
+      customField: editorForm.customField,
+      category: editorForm.category,
+      subCategory: editorForm.subCategory,
+      title: editorForm.title,
+      description: editorForm.description,
+      iconSlots,
+      hashtags: hashtagsArr,
+      descriptionImage: editorForm.descriptionImage,
+      popup: popupHtml,
+      customColor: "#ffffff",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updatedList = [...customMarkers, finalMarker];
+    handleSaveCustomMarkers(updatedList);
+    
+    setPendingMarker(null);
+    setEditorForm({
+      id: '',
+      grid: '',
+      customField: '',
+      category: '',
+      subCategory: '',
+      iconSlots: [],
+      title: '',
+      description: '',
+      hashtags: '',
+      descriptionImage: null
+    });
+  };
 
   // --- REMOVE MARKER FUNCTION ---
   const handleRemoveMarker = (markerId: string) => {
@@ -877,23 +501,30 @@ export default function MapPage() {
     handleSaveCustomMarkers(updatedList);
   };
 
+  // --- REMOVE PENDING MARKER FUNCTION ---
+  const handleRemovePendingMarker = () => {
+    setPendingMarker(null);
+    setEditorForm({
+      id: '',
+      grid: '',
+      customField: '',
+      category: '',
+      subCategory: '',
+      iconSlots: [],
+      title: '',
+      description: '',
+      hashtags: '',
+      descriptionImage: null
+    });
+  };
+
   // --- EXPORT JSON FUNCTION ---
   const handleExportJson = () => {
-    // Convert image slots to base64 strings for export
-    const markersForExport = customMarkers.map(marker => ({
-      ...marker,
-      imageSlots: marker.imageSlots?.map((slot: any) => ({
-        ...slot,
-        file: null, // Remove file object
-        preview: slot.preview // Keep base64 string
-      })) || []
-    }));
-    
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(markersForExport, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customMarkers, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "markers_export.json");
-    document.body.appendChild(downloadAnchorNode); // required for firefox
+    document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
@@ -1302,6 +933,49 @@ export default function MapPage() {
           </div>
 
           <div className={styles.uiContainer}></div>
+          
+          {/* MARKER EDITOR TOGGLE BUTTON - MOVED TO RIGHT SIDE OF PDA SCREEN */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            zIndex: 10005
+          }}>
+            <button
+              onClick={() => setShowMarkerEditor(!showMarkerEditor)}
+              style={{
+                width: '40px',
+                height: '40px',
+                background: showMarkerEditor ? 'linear-gradient(145deg, #4CAF50, #2E7D32)' : 'linear-gradient(145deg, #4a4a4a, #2a2a2a)',
+                border: '2px solid #666',
+                borderRadius: '4px',
+                color: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+              }}
+            >
+              {showMarkerEditor ? '✕' : 'Edit'}
+            </button>
+          </div>
+
           {!pdaOn && (
             <div className={styles.pdaScreenOff} role="status" aria-live="polite">
               <div className={styles.pdaScreenOffInner}>
@@ -1450,130 +1124,620 @@ export default function MapPage() {
                 )}
               </div>
             </div>
-
-            <hr style={{borderColor: 'rgba(255,255,255,0.1)', margin: '10px 0'}} />
-
-            {/* EDITOR TOGGLE AND EXPORT */}
-            <div className={styles.wtloMenuSection}>
-              <div className={styles.wtloDropdownHeader}>
-                <h5 className={styles.wtloDropdownTitle}>Marker Tools</h5>
-              </div>
-
-              <div style={{ padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
-                
-                {/* Toggle Edit Mode */}
-                <button
-                  onClick={() => setEditorMode(!editorMode)}
-                  style={{
-                    background: editorMode ? '#4CAF50' : '#333',
-                    color: 'white',
-                    border: '1px solid #555',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    fontSize: '11px'
-                  }}
-                >
-                  {editorMode ? 'Turn Edit Mode OFF' : 'Turn Edit Mode ON'}
-                </button>
-
-                {editorMode && (
-                  <div style={{ fontSize: '11px', color: '#aaa', fontStyle: 'italic', textAlign: 'center' }}>
-                    Click on the map to place a marker.
-                  </div>
-                )}
-
-                {/* Export Button */}
-                {customMarkers.length > 0 && (
-                  <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #444'}}>
-                     <div style={{fontSize: '11px', marginBottom: '5px', color: '#aaa'}}>
-                       Created markers: {customMarkers.length}
-                     </div>
-                     <button
-                      onClick={handleExportJson}
-                      style={{
-                        width: '100%',
-                        background: '#FF9800',
-                        color: 'black',
-                        border: 'none',
-                        padding: '8px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        borderRadius: '4px',
-                        fontSize: '11px'
-                      }}
-                    >
-                      EXPORT ALL TO JSON
-                    </button>
-                    
-                    {/* Marker List with Delete Options */}
-                    <div style={{marginTop: '15px'}}>
-                      <h6 style={{color: '#ccc', fontSize: '12px', marginBottom: '5px'}}>Created Markers:</h6>
-                      {customMarkers.map((marker) => (
-                        <div 
-                          key={marker.id} 
-                          style={{
-                            background: 'rgba(0,0,0,0.2)', 
-                            padding: '8px', 
-                            borderRadius: '4px', 
-                            marginBottom: '5px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <div style={{flex: 1}}>
-                            <div style={{fontSize: '11px', color: '#ddd', fontWeight: 'bold'}}>
-                              {marker.subCategory || 'Untitled'}
-                            </div>
-                            <div style={{fontSize: '10px', color: '#aaa'}}>
-                              {marker.grid} - {marker.description.substring(0, 30)}...
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveMarker(marker.id)}
-                            style={{
-                              background: 'rgba(244, 67, 54, 0.2)',
-                              border: '1px solid #f44336',
-                              color: '#f44336',
-                              padding: '4px 8px',
-                              cursor: 'pointer',
-                              borderRadius: '3px',
-                              fontSize: '10px'
-                            }}
-                            title="Delete this marker"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            </div>
-
           </div>
         </div>
       )}
     </div>
 
-    {/* Standalone Marker Editor Component */}
-    <StandaloneMarkerEditor
-      editorMode={editorMode}
-      setEditorMode={setEditorMode}
-      pendingMarker={pendingMarker}
-      setPendingMarker={setPendingMarker}
-      legendCategories={legendCategories}
-      currentMap={currentMap}
-      customMarkers={customMarkers}
-      onSaveMarkers={handleSaveCustomMarkers}
-      onRemoveMarker={handleRemoveMarker}
-    />
+    {/* STANDALONE MARKER EDITOR - DRAGGABLE VERSION */}
+    {showMarkerEditor && (
+      <div 
+        className={styles.markEditorContainer}
+        style={{
+          position: 'fixed',
+          left: `${markerEditorPosition.x}px`,
+          top: `${markerEditorPosition.y}px`,
+          cursor: isMarkerEditorDragging ? 'grabbing' : 'default',
+          zIndex: 10010,
+          minWidth: '320px',
+          maxWidth: '340px',
+          maxHeight: '85vh',
+          overflow: 'hidden',
+          borderRadius: '8px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.8)'
+        }}
+      >
+        <div 
+          style={{ 
+            cursor: 'default',
+            background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)',
+            border: '1px solid #333',
+            borderRadius: '8px',
+            color: '#f1f1f1',
+            display: 'flex',
+            flexDirection: 'column',
+            backdropFilter: 'blur(10px)',
+            overflow: 'hidden'
+          }}
+        >
+          {/* HEADER - DRAGGABLE AREA */}
+          <div 
+            className={styles.wtloMenuHeader}
+            onMouseDown={handleMarkerEditorMouseDown}
+            style={{ 
+              cursor: isMarkerEditorDragging ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              padding: '12px 16px',
+              borderBottom: '1px solid #333',
+              background: 'linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                background: '#4CAF50', 
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 'bold' }}>0.2</span>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>Marker Editor</h3>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => setEditorMode(!editorMode)}
+                style={{
+                  background: editorMode ? '#4CAF50' : '#333',
+                  color: 'white',
+                  border: '1px solid #555',
+                  padding: '4px 8px',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {editorMode ? 'EDIT ON' : 'EDIT OFF'}
+              </button>
+              <div style={{ fontSize: '9px', color: '#999', background: 'rgba(0, 0, 0, 0.3)', padding: '2px 6px', borderRadius: '3px', border: '1px solid #444' }}>
+                ↕ Drag
+              </div>
+            </div>
+          </div>
+          
+          {/* CONTENT */}
+          <div style={{ 
+            padding: '16px', 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '12px',
+            overflowY: 'auto',
+            maxHeight: 'calc(85vh - 60px)'
+          }}>
+            
+            {editorMode && (
+              <div style={{ 
+                background: 'rgba(255,255,255,0.05)', 
+                padding: '8px', 
+                borderRadius: '4px',
+                textAlign: 'center',
+                fontSize: '11px',
+                color: '#aaa',
+                border: '1px dashed rgba(255,255,255,0.1)'
+              }}>
+                Click on the map to place a marker
+              </div>
+            )}
+
+            {/* FORM - Only show when there's a pending marker */}
+            {editorMode && pendingMarker && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                
+                {/* ID and Grid Row */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>ID:</label>
+                    <input
+                      type="text"
+                      value={editorForm.id}
+                      onChange={(e) => setEditorForm({...editorForm, id: e.target.value})}
+                      style={{
+                        background: '#222',
+                        color: '#fff',
+                        border: '1px solid #444',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        width: '100%'
+                      }}
+                      placeholder="Marker ID"
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Grid:</label>
+                    <input
+                      type="text"
+                      value={editorForm.grid}
+                      onChange={(e) => setEditorForm({...editorForm, grid: e.target.value})}
+                      style={{
+                        background: '#222',
+                        color: '#fff',
+                        border: '1px solid #444',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        width: '100%'
+                      }}
+                      placeholder="Grid location"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Field */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                    Custom field: <span style={{ color: '#888', fontSize: '10px' }}>(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editorForm.customField}
+                    onChange={(e) => setEditorForm({...editorForm, customField: e.target.value})}
+                    style={{
+                      background: '#222',
+                      color: '#fff',
+                      border: '1px solid #444',
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      borderRadius: '4px',
+                      width: '100%'
+                    }}
+                    placeholder="Enter custom field"
+                  />
+                </div>
+
+                {/* Category and SubCategory */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Category:</label>
+                    <select 
+                      value={editorForm.category}
+                      onChange={(e) => setEditorForm({...editorForm, category: e.target.value, subCategory: ''})}
+                      style={{
+                        background: '#222',
+                        color: '#fff',
+                        border: '1px solid #444',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Category</option>
+                      {Object.keys(legendCategories).map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Sub Category:</label>
+                    <select 
+                      value={editorForm.subCategory}
+                      onChange={(e) => setEditorForm({...editorForm, subCategory: e.target.value})}
+                      style={{
+                        background: '#222',
+                        color: '#fff',
+                        border: '1px solid #444',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                      disabled={!editorForm.category}
+                    >
+                      <option value="">Select SubCategory</option>
+                      {editorForm.category && legendCategories[editorForm.category]?.subItems && 
+                        Object.keys(legendCategories[editorForm.category].subItems).map(sub => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                {/* Pre-made Icons */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '8px', display: 'block' }}>Pre-made icons:</label>
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '6px', 
+                    flexWrap: 'wrap', 
+                    maxHeight: '100px', 
+                    overflowY: 'auto', 
+                    padding: '8px', 
+                    background: 'rgba(0,0,0,0.3)', 
+                    borderRadius: '4px',
+                    border: '1px solid #333'
+                  }}>
+                    {markerIcons.slice(0, 16).map(iconFile => (
+                      <button 
+                        key={iconFile} 
+                        onClick={() => {
+                          const url = `/markers/${iconFile}`;
+                          if (editorForm.iconSlots.length === 0) {
+                            setEditorForm((prev:any) => ({
+                              ...prev, 
+                              iconSlots: [{ icon: url }]
+                            }))
+                          } else {
+                            setEditorForm((prev:any) => ({
+                              ...prev, 
+                              iconSlots: prev.iconSlots.map((s:any, idx:number) => 
+                                idx === 0 ? { ...s, icon: url } : s
+                              )
+                            }))
+                          }
+                        }}
+                        title={iconFile.replace('.png', '')}
+                        style={{
+                          background: editorForm.iconSlots[0]?.icon === `/markers/${iconFile}` ? 'rgba(76, 175, 80, 0.3)' : '#222', 
+                          border: editorForm.iconSlots[0]?.icon === `/markers/${iconFile}` ? '1px solid #4CAF50' : '1px solid #444', 
+                          padding: '4px', 
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        <Image 
+                          src={`/markers/${iconFile}`} 
+                          alt={iconFile} 
+                          width={20} 
+                          height={20}
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Title:</label>
+                  <input
+                    type="text"
+                    value={editorForm.title}
+                    onChange={(e) => setEditorForm({...editorForm, title: e.target.value})}
+                    style={{
+                      background: '#222',
+                      color: '#fff',
+                      border: '1px solid #444',
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      borderRadius: '4px',
+                      width: '100%'
+                    }}
+                    placeholder="Enter marker title"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Description:</label>
+                  <textarea
+                    id="description-textarea"
+                    value={editorForm.description}
+                    onChange={(e) => setEditorForm({...editorForm, description: e.target.value})}
+                    style={{
+                      background: '#222',
+                      color: '#fff',
+                      border: '1px solid #444',
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      borderRadius: '4px',
+                      width: '100%',
+                      minHeight: '80px',
+                      resize: 'vertical'
+                    }}
+                    placeholder="Enter marker description"
+                  />
+                </div>
+
+                {/* Custom Image Description */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>Custom image description:</label>
+                  {editorForm.descriptionImage ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img 
+                          src={editorForm.descriptionImage} 
+                          alt="Description" 
+                          style={{ 
+                            width: '60px', 
+                            height: '60px', 
+                            objectFit: 'cover',
+                            borderRadius: '4px',
+                            border: '1px solid #555'
+                          }} 
+                        />
+                        <div style={{ flex: 1 }}>
+                          <button
+                            onClick={() => insertImageIntoDescription(editorForm.descriptionImage)}
+                            style={{
+                              background: '#4CAF50',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 10px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              width: '100%',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            <ImageIcon size={12} /> Insert into Description
+                          </button>
+                          <button
+                            onClick={removeDescriptionImage}
+                            style={{
+                              background: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 10px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              width: '100%'
+                            }}
+                          >
+                            <Trash2 size={12} /> Remove Image
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="file"
+                        id="desc-img-upload"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleDescriptionImageUpload}
+                      />
+                      <button
+                        onClick={() => document.getElementById('desc-img-upload')?.click()}
+                        style={{
+                          background: '#2196F3',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 12px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          width: '100%'
+                        }}
+                      >
+                        <Upload size={14} /> Upload Image
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                    <Hash size={12} style={{ marginRight: '4px' }} />
+                    Hashtag placement:
+                  </label>
+                  <input
+                    type="text"
+                    value={editorForm.hashtags}
+                    onChange={(e) => setEditorForm({...editorForm, hashtags: e.target.value})}
+                    style={{
+                      background: '#222',
+                      color: '#fff',
+                      border: '1px solid #444',
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      borderRadius: '4px',
+                      width: '100%'
+                    }}
+                    placeholder="#example, #tags, #separated, #by, #commas"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button 
+                    onClick={handleSaveMarker}
+                    style={{
+                      flex: 1,
+                      background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Save size={14} /> Save
+                  </button>
+                  <button 
+                    onClick={handleRemovePendingMarker}
+                    style={{
+                      flex: 1,
+                      background: 'linear-gradient(135deg, #f44336 0%, #c62828 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <XCircle size={14} /> Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Saved Markers Section */}
+            {customMarkers.length > 0 && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #333' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#ccc', fontWeight: 'bold' }}>
+                    Saved Markers: {customMarkers.length}
+                  </div>
+                  <button
+                    onClick={handleExportJson}
+                    style={{
+                      background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                      color: 'black',
+                      border: 'none',
+                      padding: '6px 12px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Download size={12} /> Export JSON
+                  </button>
+                </div>
+                
+                {/* Marker List */}
+                <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {customMarkers.slice().reverse().map((marker) => (
+                    <div 
+                      key={marker.id} 
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: disclosedMarkerId === marker.id ? '1px solid #4CAF50' : '1px solid rgba(255,255,255,0.1)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>
+                            {marker.title || marker.subCategory || 'Untitled Marker'}
+                          </span>
+                          <span style={{ fontSize: '10px', color: '#aaa' }}>
+                            {marker.grid} • {marker.category}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            onClick={() => setDisclosedMarkerId(disclosedMarkerId === marker.id ? null : marker.id)}
+                            style={{
+                              background: '#555',
+                              color: 'white',
+                              border: 'none',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}
+                          >
+                            {disclosedMarkerId === marker.id ? <EyeOff size={10} /> : <Eye size={10} />} JSON
+                          </button>
+                          <button
+                            onClick={() => handleRemoveMarker(marker.id)}
+                            style={{
+                              background: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}
+                          >
+                            <Trash2 size={10} /> Delete
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {disclosedMarkerId === marker.id && (
+                        <textarea
+                          readOnly
+                          value={JSON.stringify(marker, null, 2)}
+                          style={{
+                            width: '100%',
+                            minHeight: '120px',
+                            background: '#111',
+                            color: '#aeffa1',
+                            border: '1px solid #444',
+                            borderRadius: '4px',
+                            marginTop: '8px',
+                            fontSize: '9px',
+                            fontFamily: 'monospace',
+                            padding: '6px',
+                            resize: 'vertical'
+                          }}
+                          onFocus={(e) => e.target.select()}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!editorMode && !pendingMarker && customMarkers.length === 0 && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '24px 0', 
+                color: '#666',
+                fontSize: '12px'
+              }}>
+                Turn on Edit Mode and click on the map to create markers
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     
     </div>  
     )

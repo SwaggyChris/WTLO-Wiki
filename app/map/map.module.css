@@ -1243,6 +1243,103 @@
     border: none !important;
 }
 
+/* Small Marker Styles */
+.custom-marker-small {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) !important;
+    transition: transform 0.2s ease !important;
+}
+
+.custom-marker-small:hover {
+    transform: scale(1.2) !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9)) brightness(1.1) !important;
+}
+
+.custom-marker-medium {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) !important;
+    transition: transform 0.2s ease !important;
+}
+
+.custom-marker-medium:hover {
+    transform: scale(1.1) !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9)) brightness(1.1) !important;
+}
+
+.custom-marker-large {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) !important;
+    transition: transform 0.2s ease !important;
+}
+
+.custom-marker-large:hover {
+    transform: scale(1.1) !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9)) brightness(1.1) !important;
+}
+
+/* Custom Marker Popup Styles */
+.custom-marker-popup .leaflet-popup-content-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.custom-marker-popup .leaflet-popup-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.custom-marker-popup .leaflet-popup-tip-container {
+    display: none;
+}
+
+/* Marker Tag Popup Styling */
+.marker-tag-popup {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    border: 1px solid #444 !important;
+    border-radius: 6px !important;
+    padding: 8px !important;
+    color: #fff !important;
+    font-family: Arial, sans-serif !important;
+    max-width: 180px !important;
+    min-width: 120px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(4px);
+    user-select: none;
+    pointer-events: none;
+}
+
+.marker-tag-popup .leaflet-popup-content {
+    width: 100% !important;
+}
+
+/* Prevent text selection in popups */
+.marker-tag-popup * {
+    user-select: none !important;
+    pointer-events: none !important;
+}
+
+/* Scrollbar for popup description */
+.marker-tag-popup div::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+.marker-tag-popup div::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.2) !important;
+}
+
+.marker-tag-popup div::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2) !important;
+    border-radius: 2px !important;
+}
+
+/* Responsive marker sizes */
+@media (max-width: 768px) {
+    .custom-marker-small {
+        transform: scale(0.9) !important;
+    }
+}
+
 /* Small rats marker animation */
 @keyframes ratPulse {
     0% { 
@@ -1650,7 +1747,7 @@
     background: rgba(20, 20, 20, 0.8);
 }
 
-markEditorList::-webkit-scrollbar-thumb {
+.markEditorList::-webkit-scrollbar-thumb {
     background-color: #444;
     border-radius: 2px;
 }

@@ -138,6 +138,8 @@ export const initialLegendCategories = {
       'Armor': false,
       'Artifact': false,
       'Electronics': false,
+      'Crafting Tools': false,
+      'Crafting Materials': false,
       'Miscellaneous': false,
       'Water Source': false,
       'Gasoline': false
