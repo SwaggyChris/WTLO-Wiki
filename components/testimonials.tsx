@@ -73,8 +73,8 @@ const TestimonialCard = ({
   body: string
 }) => {
   return (
-    <div className="relative w-full max-w-xs overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] p-10 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.1)_inset]">
-      <div className="absolute -top-5 -left-5 -z-10 h-40 w-40 rounded-full bg-gradient-to-b from-[#e78a53]/10 to-transparent blur-md"></div>
+    <div className="relative w-full max-w-xs overflow-hidden rounded-3xl border border-white/10 bg-linear-to-b from-white/5 to-white/2 p-10 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.1)_inset]">
+      <div className="absolute -top-5 -left-5 -z-10 h-40 w-40 rounded-full bg-linear-to-b from-[#e78a53]/10 to-transparent blur-md"></div>
 
       <div className="text-white/90 leading-relaxed">{body}</div>
 
@@ -92,19 +92,19 @@ export function TestimonialsSection() {
   return (
     <section id="testimonials" className="mb-24">
       <div className="mx-auto max-w-7xl">
-        <div className="mx-auto max-w-[540px]">
+        <div className="mx-auto max-w-135">
           <div className="flex justify-center">
             <button
               type="button"
-              className="group relative z-[60] mx-auto rounded-full border border-white/20 bg-white/5 px-6 py-1 text-xs backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-100 md:text-sm"
+              className="group relative z-60 mx-auto rounded-full border border-white/20 bg-white/5 px-6 py-1 text-xs backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-100 md:text-sm"
             >
-              <div className="absolute inset-x-0 -top-px mx-auto h-0.5 w-1/2 bg-gradient-to-r from-transparent via-[#e78a53] to-transparent shadow-2xl transition-all duration-500 group-hover:w-3/4"></div>
-              <div className="absolute inset-x-0 -bottom-px mx-auto h-0.5 w-1/2 bg-gradient-to-r from-transparent via-[#e78a53] to-transparent shadow-2xl transition-all duration-500 group-hover:h-px"></div>
+              <div className="absolute inset-x-0 -top-px mx-auto h-0.5 w-1/2 bg-linear-to-r from-transparent via-[#e78a53] to-transparent shadow-2xl transition-all duration-500 group-hover:w-3/4"></div>
+              <div className="absolute inset-x-0 -bottom-px mx-auto h-0.5 w-1/2 bg-linear-to-r from-transparent via-[#e78a53] to-transparent shadow-2xl transition-all duration-500 group-hover:h-px"></div>
               <span className="relative text-white font-medium">Player Reviews
 </span>
             </button>
           </div>
-          <h2 className="mt-5 text-center text-4xl font-semibold tracking-tighter text-white md:text-[54px] md:leading-[60px] relative z-10">
+          <h2 className="mt-5 text-center text-4xl font-semibold tracking-tighter text-white md:text-[54px] md:leading-15 relative z-10">
             What players are saying
           </h2>
 
@@ -113,7 +113,7 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="my-16 flex max-h-[738px] justify-center gap-6 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">
+        <div className="my-16 flex max-h-184.5 justify-center gap-6 overflow-hidden mask-[linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">
           <div>
             <Marquee pauseOnHover vertical className="[--duration:20s]">
               {firstColumn.map((testimonial) => (

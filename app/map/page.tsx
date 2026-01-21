@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, X, Upload, Trash2, Save, Plus } from "lucide-react"
 // Leaflet is dynamically imported on the client. Avoid importing at top-level to prevent server-side window access.
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
@@ -15,19 +15,637 @@ import styles from "./map.module.css"
 
 // Import separated data and functions
 import { availableMaps, initialLegendCategories } from "./mapData"
-<<<<<<< HEAD
 import { updateMarkers, coordinatesToGrid, getIconForCategory } from "./markers" //
 
+// Use actual files present in public/markers
 const markerIcons = [
-  "Artifact.png", "CompleteActiveQuestPoint.png", "CompleteQuestPoint.png", "Danger.png", "Food.png",
-  "Forest.png", "Fuel.png", "Important Marker.png", "Key.png", "Marked Location.png", "Monster.png",
-  "NDP Teleport.png", "NPC.png", "NPCDoctor.png", "NPCGunsmith.png", "NPCStockman.png", "NPCTrader.png",
-  "Portal.png", "PVP Zone.png", "Quest.png", "QuestPoint.png", "Radiation.png", "Safezone.png",
-  "Simple Marker.png", "TakeQuestPoint.png", "Unknown Area.png", "Water.png", "WaterSource.png"
+  "Ammo.png",
+  "Artifact.png",
+  "Clothes.png",
+  "Danger.png",
+  "Food.png",
+  "Forest.png",
+  "Fuel.png",
+  "Important Marker.png",
+  "Key.png",
+  "Marked Location.png",
+  "Medicine.png",
+  "Monster.png",
+  "NDP Teleport.png",
+  "NPC.png",
+  "NPCDoctor.png",
+  "NPCGunsmith.png",
+  "NPCStockman.png",
+  "NPCTrader.png",
+  "Portal.png",
+  "PVP Zone.png",
+  "Quest.png",
+  "QuestPoint.png",
+  "Radiation.png",
+  "Safezone.png",
+  "Simple Marker.png",
+  "Tools.png",
+  "Unknown Area.png",
+  "Water.png",
+  "WaterSource.png",
+  "Weapons.png"
 ];
-=======
-import { updateMarkers } from "./markers"
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
+
+// New standalone marker editor component
+const StandaloneMarkerEditor = ({ 
+  editorMode, 
+  setEditorMode, 
+  pendingMarker, 
+  setPendingMarker,
+  legendCategories,
+  currentMap,
+  customMarkers,
+  onSaveMarkers,
+  onRemoveMarker
+}: any) => {
+  const [editorForm, setEditorForm] = useState<any>({
+    category: '',
+    subCategory: '',
+    grid: '',
+    description: '',
+    imageSlots: [] as Array<{ id: string; file: File | null; preview: string; title: string; description: string }>
+  });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 50, y: 150 });
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState<string>('/markers/Simple Marker.png');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize form when pendingMarker changes
+  useEffect(() => {
+    if (pendingMarker) {
+      setEditorForm({
+        category: Object.keys(legendCategories)[0] || '',
+        subCategory: '',
+        grid: pendingMarker.grid || '',
+        description: '',
+        imageSlots: []
+      });
+      setSelectedIcon('/markers/Simple Marker.png');
+    }
+  }, [pendingMarker, legendCategories]);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+
+  // Handle file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newSlots = [...editorForm.imageSlots];
+    
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newSlot = {
+          id: Date.now().toString() + Math.random(),
+          file,
+          preview: reader.result as string,
+          title: '',
+          description: ''
+        };
+        newSlots.push(newSlot);
+        setEditorForm((prev: any) => ({
+          ...prev,
+          imageSlots: newSlots
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImageSlot = (id: string) => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      imageSlots: prev.imageSlots.filter((slot: any) => slot.id !== id)
+    }));
+  };
+
+  const updateImageSlot = (id: string, field: string, value: string) => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      imageSlots: prev.imageSlots.map((slot: any) => 
+        slot.id === id ? { ...slot, [field]: value } : slot
+      )
+    }));
+  };
+
+  const handleSaveMarker = () => {
+    if (!pendingMarker) return;
+
+    // Build popup HTML with images on right side
+    const popupId = `marker-popup-${pendingMarker.id}`;
+    
+    // Images HTML for the right side
+    const imagesHtml = editorForm.imageSlots.length > 0 ? `
+      <div style="float: right; margin-left: 15px; width: 150px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${editorForm.imageSlots.map((slot: any) => `
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+              <img src="${slot.preview}" alt="${slot.title || 'Image'}" 
+                   style="width: 100%; height: auto; border-radius: 3px; margin-bottom: 6px;" />
+              ${slot.title ? `<div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">${slot.title}</div>` : ''}
+              ${slot.description ? `<div style="font-size: 11px; color: #aaa;">${slot.description}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    // Description HTML for the left side
+    const descriptionHtml = `
+      <div style="overflow: hidden;">
+        ${imagesHtml}
+        <div>
+          <strong style="font-size: 14px; color: #fff; display: block; margin-bottom: 8px;">${editorForm.description.split('\n')[0] || 'Marker'}</strong>
+          <div style="font-size: 12px; line-height: 1.5; color: #ccc; white-space: pre-wrap;">
+            ${editorForm.description.replace(/\n/g, '<br/>')}
+          </div>
+          ${editorForm.grid ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #aaa;">Grid: ${editorForm.grid}</div>` : ''}
+        </div>
+      </div>
+    `;
+
+    const finalMarker = {
+      ...pendingMarker,
+      category: editorForm.category,
+      subCategory: editorForm.subCategory,
+      grid: editorForm.grid,
+      description: editorForm.description,
+      icon: selectedIcon,
+      imageSlots: editorForm.imageSlots,
+      popup: `<div id="${popupId}" style="min-width: 300px;">${descriptionHtml}</div>`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updatedList = [...customMarkers, finalMarker];
+    onSaveMarkers(updatedList);
+    setPendingMarker(null);
+    setEditorForm({
+      category: '',
+      subCategory: '',
+      grid: '',
+      description: '',
+      imageSlots: []
+    });
+  };
+
+  if (!editorMode) return null;
+
+  return (
+    <div 
+      className="standalone-marker-editor"
+      style={{
+        position: 'fixed',
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        width: '350px',
+        backgroundColor: 'rgba(20, 20, 20, 0.95)',
+        border: '1px solid #444',
+        borderRadius: '8px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+        zIndex: 10010,
+        backdropFilter: 'blur(10px)',
+        cursor: isDragging ? 'grabbing' : 'default',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Header with drag handle */}
+      <div 
+        style={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(40, 40, 40, 0.9)',
+          borderBottom: '1px solid #444',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'grab',
+          userSelect: 'none'
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <h3 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: '600' }}>
+          Marker Editor {pendingMarker && `- ${pendingMarker.grid}`}
+        </h3>
+        <button
+          onClick={() => setEditorMode(false)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#aaa',
+            cursor: 'pointer',
+            padding: '4px',
+            borderRadius: '4px'
+          }}
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Editor Content */}
+      <div style={{ padding: '16px', maxHeight: '70vh', overflowY: 'auto' }}>
+        {pendingMarker ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Basic Information */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#ccc' }}>Coordinates</label>
+              <input
+                type="text"
+                value={`X: ${pendingMarker.coordinates?.x}, Y: ${pendingMarker.coordinates?.y}`}
+                readOnly
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid #444',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  color: '#aaa',
+                  fontSize: '12px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#ccc' }}>Grid ID</label>
+              <input
+                type="text"
+                value={editorForm.grid}
+                onChange={(e) => setEditorForm({ ...editorForm, grid: e.target.value })}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid #555',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  color: '#fff',
+                  fontSize: '12px'
+                }}
+                placeholder="Enter grid ID (e.g., A1)"
+              />
+            </div>
+
+            {/* Category Selection */}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '12px', color: '#ccc' }}>Category</label>
+                <select
+                  value={editorForm.category}
+                  onChange={(e) => setEditorForm({ ...editorForm, category: e.target.value, subCategory: '' })}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid #555',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    color: '#fff',
+                    fontSize: '12px',
+                    width: '100%'
+                  }}
+                >
+                  <option value="">Select Category</option>
+                  {Object.keys(legendCategories).map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '12px', color: '#ccc' }}>Sub Category</label>
+                <select
+                  value={editorForm.subCategory}
+                  onChange={(e) => setEditorForm({ ...editorForm, subCategory: e.target.value })}
+                  disabled={!editorForm.category}
+                  style={{
+                    background: editorForm.category ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: '1px solid #555',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    color: editorForm.category ? '#fff' : '#666',
+                    fontSize: '12px',
+                    width: '100%'
+                  }}
+                >
+                  <option value="">Select Sub Category</option>
+                  {editorForm.category && legendCategories[editorForm.category]?.subItems && 
+                    Object.keys(legendCategories[editorForm.category].subItems).map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))
+                  }
+                </select>
+              </div>
+            </div>
+
+            {/* Icon Selection */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#ccc' }}>Marker Icon</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '2px solid #555',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => setShowIconPicker(!showIconPicker)}
+                >
+                  <Image 
+                    src={selectedIcon} 
+                    alt="Selected Icon" 
+                    width={32} 
+                    height={32}
+                    style={{ objectFit: 'contain' }}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowIconPicker(!showIconPicker)}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid #555',
+                    borderRadius: '4px',
+                    padding: '8px 12px',
+                    color: '#fff',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    flex: 1
+                  }}
+                >
+                  Choose Icon
+                </button>
+              </div>
+
+              {showIconPicker && (
+                <div style={{
+                  background: 'rgba(0,0,0,0.9)',
+                  border: '1px solid #444',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  marginTop: '8px',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {markerIcons.map(iconFile => (
+                      <button
+                        key={iconFile}
+                        onClick={() => {
+                          setSelectedIcon(`/markers/${iconFile}`);
+                          setShowIconPicker(false);
+                        }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: selectedIcon === `/markers/${iconFile}` ? '2px solid #4CAF50' : '1px solid #444',
+                          borderRadius: '4px',
+                          padding: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Image 
+                          src={`/markers/${iconFile}`} 
+                          alt={iconFile} 
+                          width={24} 
+                          height={24}
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#ccc' }}>Description</label>
+              <textarea
+                value={editorForm.description}
+                onChange={(e) => setEditorForm({ ...editorForm, description: e.target.value })}
+                placeholder="Enter detailed description..."
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid #555',
+                  borderRadius: '4px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  minHeight: '100px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            {/* Image Upload Section */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '12px', color: '#ccc' }}>Additional Images</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid #555',
+                    borderRadius: '4px',
+                    padding: '6px 12px',
+                    color: '#fff',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Upload size={14} />
+                  Upload Images
+                </button>
+              </div>
+
+              {/* Image Slots */}
+              {editorForm.imageSlots.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {editorForm.imageSlots.map((slot: any) => (
+                    <div 
+                      key={slot.id}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid #444',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        display: 'flex',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ flexShrink: 0 }}>
+                        <img 
+                          src={slot.preview} 
+                          alt="Preview" 
+                          style={{
+                            width: '60px',
+                            height: '60px',
+                            objectFit: 'cover',
+                            borderRadius: '4px'
+                          }}
+                        />
+                      </div>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <input
+                          type="text"
+                          value={slot.title}
+                          onChange={(e) => updateImageSlot(slot.id, 'title', e.target.value)}
+                          placeholder="Image title (optional)"
+                          style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid #444',
+                            borderRadius: '4px',
+                            padding: '6px',
+                            color: '#fff',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <textarea
+                          value={slot.description}
+                          onChange={(e) => updateImageSlot(slot.id, 'description', e.target.value)}
+                          placeholder="Image description (optional)"
+                          style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid #444',
+                            borderRadius: '4px',
+                            padding: '6px',
+                            color: '#fff',
+                            fontSize: '12px',
+                            minHeight: '40px',
+                            resize: 'vertical'
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => removeImageSlot(slot.id)}
+                        style={{
+                          background: 'rgba(255,0,0,0.2)',
+                          border: '1px solid #f44336',
+                          borderRadius: '4px',
+                          color: '#f44336',
+                          cursor: 'pointer',
+                          padding: '4px 8px',
+                          height: 'fit-content'
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+              <button
+                onClick={handleSaveMarker}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Save size={16} />
+                Save Marker
+              </button>
+              <button
+                onClick={() => {
+                  setPendingMarker(null);
+                  setEditorForm({
+                    category: '',
+                    subCategory: '',
+                    grid: '',
+                    description: '',
+                    imageSlots: []
+                  });
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid #555',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📍</div>
+            <h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Click on the Map</h4>
+            <p style={{ fontSize: '12px', margin: 0 }}>
+              Click anywhere on the map to place a new marker. The editor will open here.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null)
@@ -38,21 +656,14 @@ export default function MapPage() {
   const [showMapMenu, setShowMapMenu] = useState(false)
   const [showLegendMenu, setShowLegendMenu] = useState(false)
   const [showWtlomenu, setShowWtlomenu] = useState(false)
-<<<<<<< HEAD
   const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Solar_City_Town.png")
-=======
-  const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Default.png")
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   const [pdaSkin, setPdaSkin] = useState<string>('/PDA.png')
   const [pdaOn, setPdaOn] = useState<boolean>(true)
   const [pdaNatural, setPdaNatural] = useState<{w:number,h:number}|null>(null)
   const [btnPressed, setBtnPressed] = useState(false)
-  const [skinDropdownOpen, setSkinDropdownOpen] = useState(true)
-<<<<<<< HEAD
+  const [skinDropdownOpen, setSkinDropdownOpen] = useState(false)
   const [disclosedMarkerId, setDisclosedMarkerId] = useState<string | null>(null)
   const [showIconPicker, setShowIconPicker] = useState(false);
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   
   // Drag functionality states for WTLO Menu
   const [wtloMenuPosition, setWtloMenuPosition] = useState({ x: 20, y: 100 })
@@ -68,25 +679,14 @@ export default function MapPage() {
   const [markers, setMarkers] = useState<any[]>([])
   const [leafletRef, setLeafletRef] = useState<any>(null)
 
-<<<<<<< HEAD
   // Custom markers from editor
   const [customMarkers, setCustomMarkers] = useState<any[]>([])
 
   // --- MARKER EDITOR STATE ---
   const [editorMode, setEditorMode] = useState(false)
   const [pendingMarker, setPendingMarker] = useState<any | null>(null)
-  const [editorForm, setEditorForm] = useState({
-    category: '',
-    subCategory: '',
-    description: '',
-    popupTitle: '',
-    icon: ''
-  })
-  
-  // ---------------------------
 
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
+  // ---------------------------
   // Updated Legend categories state structure with nested sub-items
   const [legendCategories, setLegendCategories] = useState<Record<string, {
     checked: boolean;
@@ -162,31 +762,21 @@ export default function MapPage() {
   }, [isExternalDragging, externalDragStart])
 
   // Function to update markers based on legend and map state
-<<<<<<< HEAD
   const updateMarkersHandler = async (customMarkersData: any[] = []) => {
-=======
-  const updateMarkersHandler = async () => {
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     if (!mapInstanceRef.current || !leafletRef) return
     
-    // Clear existing markers
+    // Clear existing markers from the map
     markers.forEach(marker => {
       mapInstanceRef.current?.removeLayer(marker)
     });
     
-<<<<<<< HEAD
-    // Use the imported updateMarkers function for default markers
-=======
-    // Use the imported updateMarkers function
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
-    await updateMarkers(
+    // Get new markers from the imported function
+    const newMarkers = await updateMarkers(
       mapInstanceRef.current,
       leafletRef,
       currentMap,
-      legendCategories,
-      setMarkers
+      legendCategories
     );
-<<<<<<< HEAD
     
     // Add custom markers if any
     customMarkersData.forEach((markerInfo: any) => {
@@ -220,17 +810,16 @@ export default function MapPage() {
             .addTo(mapInstanceRef.current)
             .bindPopup(popup);
           
-          setMarkers(prev => [...prev, marker]);
+          newMarkers.push(marker);
         }
       }
     });
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
+
+    setMarkers(newMarkers);
   }
 
   // Update markers when conditions change
   useEffect(() => {
-<<<<<<< HEAD
     updateMarkersHandler(customMarkers)
   }, [currentMap, legendCategories, customMarkers, editorMode])
 
@@ -256,30 +845,15 @@ export default function MapPage() {
       const gridId = coordinatesToGrid(lng, lat);
       
       // Create a temporary visual marker
-      const tempId = Date.now().toString();
+      const tempId = `marker-${Date.now()}`;
       const newMarker = {
         id: tempId,
         map: currentMap,
         coordinates: { x: Math.round(lng), y: Math.round(lat) },
-        grid: gridId,
-        // Default values until form is submitted
-        category: '',
-        subCategory: '',
-        description: '',
-        popup: '<strong>New Marker</strong>',
-        icon: '/markers/Simple Marker.png'
+        grid: gridId
       };
 
       setPendingMarker(newMarker);
-      
-      // Reset form
-      setEditorForm({
-        category: Object.keys(legendCategories)[0], // Default to first category
-        subCategory: '',
-        description: '',
-        popupTitle: '',
-        icon: getIconForCategory(Object.keys(legendCategories)[0]) || '/markers/Simple Marker.png'
-      });
     };
 
     if (editorMode) {
@@ -295,31 +869,7 @@ export default function MapPage() {
     return () => {
       map.off('click', onMapClick);
     };
-  }, [editorMode, currentMap, leafletRef, legendCategories]);
-
-  // --- SAVE MARKER FUNCTION ---
-  const handleSaveMarker = () => {
-    if (!pendingMarker) return;
-
-    const iconPath = editorForm.icon || getIconForCategory(editorForm.category);
-
-    const finalMarker = {
-      ...pendingMarker,
-      category: editorForm.category,
-      subCategory: editorForm.subCategory,
-      description: editorForm.description,
-      icon: iconPath,
-      popup: `<strong>${editorForm.popupTitle || editorForm.subCategory}</strong><br>Grid: ${pendingMarker.grid}<br><em>${editorForm.description}</em>`,
-      customColor: "#ffffff",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    const updatedList = [...customMarkers, finalMarker];
-    handleSaveCustomMarkers(updatedList);
-    
-    setPendingMarker(null); // Clear pending to allow next click
-  };
+  }, [editorMode, currentMap, leafletRef]);
 
   // --- REMOVE MARKER FUNCTION ---
   const handleRemoveMarker = (markerId: string) => {
@@ -329,7 +879,17 @@ export default function MapPage() {
 
   // --- EXPORT JSON FUNCTION ---
   const handleExportJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customMarkers, null, 2));
+    // Convert image slots to base64 strings for export
+    const markersForExport = customMarkers.map(marker => ({
+      ...marker,
+      imageSlots: marker.imageSlots?.map((slot: any) => ({
+        ...slot,
+        file: null, // Remove file object
+        preview: slot.preview // Keep base64 string
+      })) || []
+    }));
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(markersForExport, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "markers_export.json");
@@ -337,10 +897,6 @@ export default function MapPage() {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
-=======
-    updateMarkersHandler()
-  }, [currentMap, legendCategories.Monsters?.subItems['Small Rats']])
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 
   // [Rest of the useEffect for map initialization remains the same...]
   useEffect(() => {
@@ -374,11 +930,7 @@ export default function MapPage() {
         [imageHeight, imageWidth],
       ]
 
-<<<<<<< HEAD
       Leaflet.imageOverlay(`/${currentMap}`, bounds).addTo(map)
-=======
-  Leaflet.imageOverlay(`/${currentMap}`, bounds).addTo(map)
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 
       map.setView([2048, 2048], -2)
       map.setMaxBounds(bounds)
@@ -396,11 +948,7 @@ export default function MapPage() {
         setZoomLevel(map.getZoom())
       })
 
-<<<<<<< HEAD
       // [Rest of the lights logic...]
-=======
-      // [Rest of the lights logic remains the same...]
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
       if (redLightRef.current && greenLightRef.current) {
         redLightRef.current.style.opacity = "0.1"
         greenLightRef.current.style.opacity = "0.8"
@@ -594,10 +1142,6 @@ export default function MapPage() {
     setShowWtlomenu(!showWtlomenu)
   }
 
-<<<<<<< HEAD
-=======
-  // [Rest of the component JSX remains exactly the same...]
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   return (
     <div className={styles.centerPage}>
       <div className={styles.mapTitleWrapper}>
@@ -637,12 +1181,8 @@ export default function MapPage() {
         ></div>
 
         <div className={`${styles.pdaScreen} ${!pdaOn ? styles.pdaScreenOffVisible : ''}`}>
-<<<<<<< HEAD
           {/* UPDATED: Added ID for cursor manipulation */}
           <div ref={mapRef} id="map-container-div" className={styles.map} aria-hidden={!pdaOn}></div>
-=======
-          <div ref={mapRef} className={styles.map} aria-hidden={!pdaOn}></div>
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
           
           <div className={styles.zoomSliderContainer}>
             <div className={styles.zoomSliderWrapper}>
@@ -693,11 +1233,7 @@ export default function MapPage() {
               onClick={toggleLegendMenu}
               className={styles.legendButton}
             >
-<<<<<<< HEAD
              Legend
-=======
-              Map Legend
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
             </button>
             
             {showLegendMenu && (
@@ -835,11 +1371,8 @@ export default function MapPage() {
           </div>
           
           <div className={styles.wtloMenuContent}>
-<<<<<<< HEAD
             
             {/* EXISTING SKIN CHANGER */}
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
             <div className={styles.wtloMenuSection}>
               <div className={styles.wtloDropdown}>
                 <div 
@@ -917,17 +1450,16 @@ export default function MapPage() {
                 )}
               </div>
             </div>
-<<<<<<< HEAD
 
             <hr style={{borderColor: 'rgba(255,255,255,0.1)', margin: '10px 0'}} />
 
-            {/* --- NEW MARKER EDITOR SECTION --- */}
+            {/* EDITOR TOGGLE AND EXPORT */}
             <div className={styles.wtloMenuSection}>
               <div className={styles.wtloDropdownHeader}>
-                <h5 className={styles.wtloDropdownTitle}>Marker Editor</h5>
+                <h5 className={styles.wtloDropdownTitle}>Marker Tools</h5>
               </div>
 
-              <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
                 
                 {/* Toggle Edit Mode */}
                 <button
@@ -953,169 +1485,11 @@ export default function MapPage() {
                   </div>
                 )}
 
-                {/* Form appears only when a spot is clicked (pendingMarker exists) */}
-                {editorMode && pendingMarker && (
-                  <div style={{ 
-                    background: 'rgba(0,0,0,0.3)', 
-                    padding: '10px', 
-                    borderRadius: '4px',
-                    border: '1px solid #444',
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '8px' 
-                  }}>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-                      <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                        <label htmlFor="marker-id" style={{fontSize: '12px', color: '#fff', 'width' : '40px'}}>ID:</label>
-                        <input
-                          id="marker-id"
-                          type="text"
-                          value={pendingMarker.id}
-                          onChange={(e) => setPendingMarker({ ...pendingMarker, id: e.target.value })}
-                          style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', fontSize: '12px', flex: 1}}
-                        />
-                      </div>
-                      <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                        <label htmlFor="marker-grid" style={{fontSize: '12px', color: '#fff', 'width' : '40px'}}>Grid:</label>
-                        <input
-                          id="marker-grid"
-                          type="text"
-                          value={pendingMarker.grid}
-                          onChange={(e) => setPendingMarker({ ...pendingMarker, grid: e.target.value })}
-                          style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', fontSize: '12px', flex: 1}}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Category Select */}
-                    <select 
-                      value={editorForm.category}
-                      onChange={(e) => setEditorForm({...editorForm, category: e.target.value, subCategory: ''})}
-                      style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', fontSize: '12px'}}
-                    >
-                      <option value="">Select Category</option>
-                      {Object.keys(legendCategories).map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-
-                    {/* SubCategory Select */}
-                    <select 
-                      value={editorForm.subCategory}
-                      onChange={(e) => setEditorForm({...editorForm, subCategory: e.target.value})}
-                      style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', fontSize: '12px'}}
-                      disabled={!editorForm.category}
-                    >
-                      <option value="">Select SubCategory</option>
-                      {editorForm.category && legendCategories[editorForm.category]?.subItems && 
-                        Object.keys(legendCategories[editorForm.category].subItems).map(sub => (
-                          <option key={sub} value={sub}>{sub}</option>
-                        ))
-                      }
-                    </select>
-
-                    {/* Icon Picker */}
-                    <div>
-                      <button 
-                        onClick={() => setShowIconPicker(!showIconPicker)}
-                        style={{
-                          width: '100%',
-                          background: '#222',
-                          color: '#fff',
-                          border: '1px solid #555',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <span style={{fontSize: '12px'}}>Icon</span>
-                        {editorForm.icon && <Image src={editorForm.icon} alt="Selected Icon" width={24} height={24} />}
-                      </button>
-                      {showIconPicker && (
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))',
-                          gap: '5px',
-                          padding: '5px',
-                          background: '#333',
-                          border: '1px solid #555',
-                          marginTop: '2px',
-                          maxHeight: '150px',
-                          overflowY: 'auto'
-                        }}>
-                          {markerIcons.map(iconFile => (
-                            <div 
-                              key={iconFile}
-                              onClick={() => {
-                                setEditorForm({...editorForm, icon: `/markers/${iconFile}`});
-                                setShowIconPicker(false);
-                              }}
-                              style={{
-                                background: editorForm.icon === `/markers/${iconFile}` ? '#4CAF50' : '#222',
-                                padding: '5px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: '4px'
-                              }}
-                            >
-                              <Image src={`/markers/${iconFile}`} alt={iconFile} width={24} height={24} />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-
-                    {/* Inputs */}
-                    <input 
-                      type="text" 
-                      placeholder="Title (optional)"
-                      value={editorForm.popupTitle}
-                      onChange={(e) => setEditorForm({...editorForm, popupTitle: e.target.value})}
-                      style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', fontSize: '12px'}}
-                    />
-
-                    <textarea 
-                      placeholder="Description"
-                      value={editorForm.description}
-                      onChange={(e) => setEditorForm({...editorForm, description: e.target.value})}
-                      style={{background: '#222', color: '#fff', border: '1px solid #555', padding: '4px', minHeight: '50px', fontSize: '12px'}}
-                    />
-
-                    {/* Actions */}
-                    <div style={{display: 'flex', gap: '5px', marginTop: '5px'}}>
-                      <button 
-                        onClick={handleSaveMarker}
-                        style={{flex: 1, background: '#2196F3', color: 'white', border: 'none', padding: '6px', cursor: 'pointer', borderRadius: '3px', fontSize: '11px'}}
-                      >
-                        SAVE
-                      </button>
-                      <button 
-                        onClick={() => setPendingMarker(null)}
-                        style={{flex: 1, background: '#F44336', color: 'white', border: 'none', padding: '6px', cursor: 'pointer', borderRadius: '3px', fontSize: '11px'}}
-                      >
-                        CANCEL
-                      </button>
-                      <button
-                        onClick={() => setPendingMarker(null)} // Assuming pendingMarker is the one being edited
-                        style={{flex: 1, background: '#F44336', color: 'white', border: 'none', padding: '6px', cursor: 'pointer', borderRadius: '3px', fontSize: '11px'}}
-                      >
-                        REMOVE
-                      </button>
-                    </div>
-                  </div>
-                  
-                )}
-
-                {/* Export Button and Marker List */}
+                {/* Export Button */}
                 {customMarkers.length > 0 && (
                   <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #444'}}>
                      <div style={{fontSize: '11px', marginBottom: '5px', color: '#aaa'}}>
-                       New markers created: {customMarkers.length}
+                       Created markers: {customMarkers.length}
                      </div>
                      <button
                       onClick={handleExportJson}
@@ -1134,8 +1508,7 @@ export default function MapPage() {
                       EXPORT ALL TO JSON
                     </button>
                     
-                      
-                    {/* Individual Marker JSON reveal */}
+                    {/* Marker List with Delete Options */}
                     <div style={{marginTop: '15px'}}>
                       <h6 style={{color: '#ccc', fontSize: '12px', marginBottom: '5px'}}>Created Markers:</h6>
                       {customMarkers.map((marker) => (
@@ -1146,46 +1519,35 @@ export default function MapPage() {
                             padding: '8px', 
                             borderRadius: '4px', 
                             marginBottom: '5px',
-                            border: disclosedMarkerId === marker.id ? '1px solid #4CAF50' : 'none'
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '8px'
                           }}
                         >
-                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <span style={{fontSize: '11px', color: '#ddd'}}>{marker.subCategory || 'Untitled'}: {marker.description.substring(0,20)}...</span>
-                            <button 
-                              onClick={() => setDisclosedMarkerId(disclosedMarkerId === marker.id ? null : marker.id)}
-                              style={{background: '#555', color: 'white', border: 'none', padding: '3px 8px', cursor: 'pointer', borderRadius: '3px', fontSize: '10px'}}
-                            >
-                              {disclosedMarkerId === marker.id ? 'Hide' : 'Show'} JSON
-                            </button>
-                            <button
-                              onClick={() => handleRemoveMarker(marker.id)}
-                              style={{background: '#F44336', color: 'white', border: 'none', padding: '3px 8px', cursor: 'pointer', borderRadius: '3px', fontSize: '10px', marginLeft: '5px'}}
-                              title="Delete this marker"
-                            >
-                              Delete
-                            </button>
+                          <div style={{flex: 1}}>
+                            <div style={{fontSize: '11px', color: '#ddd', fontWeight: 'bold'}}>
+                              {marker.subCategory || 'Untitled'}
+                            </div>
+                            <div style={{fontSize: '10px', color: '#aaa'}}>
+                              {marker.grid} - {marker.description.substring(0, 30)}...
+                            </div>
                           </div>
-                          {disclosedMarkerId === marker.id && (
-                            <textarea
-                              readOnly
-                              value={JSON.stringify(marker, null, 2)}
-                              style={{
-                                width: '100%',
-                                minHeight: '150px',
-                                background: '#111',
-                                color: '#aeffa1',
-                                border: '1px solid #444',
-                                borderRadius: '4px',
-                                marginTop: '8px',
-                                fontSize: '10px',
-                                whiteSpace: 'pre',
-                                overflowWrap: 'normal',
-                                overflowX: 'auto',
-                                padding: '5px'
-                              }}
-                              onFocus={(e) => e.target.select()}
-                            />
-                          )}
+                          <button
+                            onClick={() => handleRemoveMarker(marker.id)}
+                            style={{
+                              background: 'rgba(244, 67, 54, 0.2)',
+                              border: '1px solid #f44336',
+                              color: '#f44336',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '10px'
+                            }}
+                            title="Delete this marker"
+                          >
+                            Delete
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -1195,19 +1557,24 @@ export default function MapPage() {
               </div>
             </div>
 
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
           </div>
         </div>
       )}
     </div>
-<<<<<<< HEAD
 
+    {/* Standalone Marker Editor Component */}
+    <StandaloneMarkerEditor
+      editorMode={editorMode}
+      setEditorMode={setEditorMode}
+      pendingMarker={pendingMarker}
+      setPendingMarker={setPendingMarker}
+      legendCategories={legendCategories}
+      currentMap={currentMap}
+      customMarkers={customMarkers}
+      onSaveMarkers={handleSaveCustomMarkers}
+      onRemoveMarker={handleRemoveMarker}
+    />
     
     </div>  
     )
-=======
-    </div>
-  )
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 }

@@ -1,5 +1,4 @@
 // markers.ts - Marker system logic
-<<<<<<< HEAD
 import markerData from './markers.json';
 
 export interface Marker {
@@ -17,8 +16,6 @@ export interface Marker {
   updatedAt?: string;
 }
 
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 export const gridToCoordinates = (grid: string) => {
   const rowLetter = grid.charAt(0);
   const columnRange = grid.substring(1);
@@ -33,7 +30,6 @@ export const gridToCoordinates = (grid: string) => {
   return { x: colX, y: rowY };
 };
 
-<<<<<<< HEAD
 // - New helper to calculate Grid ID from coordinates (Inverse of gridToCoordinates)
 export const coordinatesToGrid = (x: number, y: number): string => {
   // y = rowIndex * 1312 + 456  =>  rowIndex = (y - 456) / 1312
@@ -70,18 +66,14 @@ export const getIconForCategory = (category: string): string => {
   return map[category] || '/markers/Default.png';
 };
 
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 export const updateMarkers = async (
   mapInstance: any,
   leaflet: any,
   currentMap: string,
   legendCategories: any,
-<<<<<<< HEAD
-  setMarkers: (markers: any[]) => void,
   markersData: Marker[] = markerData
 ) => {
-  if (!mapInstance || !leaflet) return;
+  if (!mapInstance || !leaflet) return [];
 
   const newMarkers: any[] = [];
 
@@ -102,7 +94,7 @@ export const updateMarkers = async (
         
         const customIcon = leaflet.icon({
           iconUrl: icon,
-          iconSize: [24, 24],
+          iconSize: [20, 20],
           iconAnchor: [12, 24],
           popupAnchor: [0, -24]
         });
@@ -116,7 +108,7 @@ export const updateMarkers = async (
     }
   });
 
-  setMarkers(newMarkers);
+  return newMarkers;
 };
 
 // Function to add a new marker to the JSON file
@@ -139,36 +131,4 @@ export const deleteMarkerFromData = (id: string, markersData: Marker[] = markerD
 // Function to get markers for a specific map
 export const getMarkersForMap = (mapFile: string, markersData: Marker[] = markerData): Marker[] => {
   return markersData.filter(marker => marker.map === mapFile);
-=======
-  setMarkers: (markers: any[]) => void
-) => {
-  if (!mapInstance || !leaflet) return;
-  
-  // Clear existing markers
-  // (markers state needs to be managed externally)
-  
-  // Check if we should show Small Rats marker
-  const isSmallRatsChecked = legendCategories.Monsters?.subItems['Small Rats'];
-  const isSolenchyTown = currentMap === "maps/T_Data_Map_Solar_City_Town.png";
-  
-  if (isSmallRatsChecked && isSolenchyTown) {
-    const coords = gridToCoordinates('C2-6');
-    
-    const customIcon = leaflet.icon({
-      iconUrl: '/markers/Monster.png',
-      iconSize: [24, 24],
-      iconAnchor: [12, 24],
-      popupAnchor: [0, -24]
-    });
-    
-    const marker = leaflet.marker([coords.y, coords.x], { icon: customIcon })
-      .addTo(mapInstance)
-      .bindPopup('<strong>Small Rats Spawn</strong><br>Grid: C2-6<br><em>Common spawn area</em>')
-      .openPopup();
-    
-    setMarkers([marker]);
-  } else {
-    setMarkers([]);
-  }
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 };

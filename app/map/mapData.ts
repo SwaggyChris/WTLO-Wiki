@@ -1,3 +1,5 @@
+import { sub } from "date-fns";
+
 // mapData.ts - Map locations and legend data
 export const availableMaps = [
   { name: "Default Map", file: "maps/T_Data_Map_Default.png", displayName: "Default" },
@@ -17,10 +19,7 @@ export const availableMaps = [
   { name: "Foothills", file: "maps/T_Data_Map_Career.png", displayName: "Foothills" }
 ];
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
 export const initialLegendCategories = {
   'Monsters': {
     checked: false,
@@ -98,7 +97,6 @@ export const initialLegendCategories = {
   },
   'NPCs': {
     checked: false,
-<<<<<<< HEAD
     expanded: false,
     subItems: {
       'Trader': false,
@@ -130,6 +128,21 @@ export const initialLegendCategories = {
       'Lost PDA': false
     }
   },
+  'Loot': {
+    checked: false,
+    expanded: false,
+    subItems: {
+      'Ammo': false,
+      'Medicine': false,
+      'Food': false,
+      'Armor': false,
+      'Artifact': false,
+      'Electronics': false,
+      'Miscellaneous': false,
+      'Water Source': false,
+      'Gasoline': false
+    }
+  },
   'Entrances/Exits': {
     checked: false,
     expanded: false,
@@ -152,65 +165,13 @@ export const initialLegendCategories = {
       
     }
   },
-  'Loot': {
-    checked: false,
-    expanded: false,
-    subItems: {
-      'Lockpick': false,
-      'Steelwires': false,
-      'Electronics': false,
-      'Miscellaneous': false,
-    }
-  },
-  'Points of Interest': {
-    checked: false,
-    expanded: false,
-    subItems: {
-      'Water Source': false,
-    }
-  },
-  'Gasoline': {
-    checked: false,
-    expanded: false,
-=======
-    subItems: {}
-  },
-  'Anomalies': {
-    checked: false,
-    subItems: {}
-  },
-  'Teleports': {
-    checked: false,
-    subItems: {}
-  },
-  'Quest Item': {
-    checked: false,
-    subItems: {}
-  },
-  'Safe zones': {
-    checked: false,
-    subItems: {}
-  },
-  'Loot': {
-    checked: false,
-    subItems: {}
-  },
-  'Gasoline': {
-    checked: false,
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
-    subItems: {}
-  },
   'Base': {
     checked: false,
-<<<<<<< HEAD
     expanded: false,
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     subItems: {}
   },
   'Plant': {
     checked: false,
-<<<<<<< HEAD
     expanded: false,
     subItems: {
         'Chamomile': false,
@@ -237,28 +198,11 @@ export const initialLegendCategories = {
   'Key': {
     checked: false,
     expanded: false,
-=======
-    subItems: {}
-  },
-  'Artifacts': {
-    checked: false,
-    subItems: {}
-  },
-  'Radiation zone': {
-    checked: false,
-    subItems: {}
-  },
-  'Key': {
-    checked: false,
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     subItems: {}
   },
   'Event Area': {
     checked: false,
-<<<<<<< HEAD
     expanded: false,
-=======
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
     subItems: {}
   }
 };

@@ -20,8 +20,8 @@ export default function DatabasePage() {
         return "Bestiary";
       case "armory":
         return "Armory";
-      case "infirmary":
-        return "Infirmary";
+      case "Pharmacist":
+        return "Pharmacist";
       default:
         return "Database";
     }
@@ -122,7 +122,7 @@ export default function DatabasePage() {
                 }`}
               >
                 <Book size={16} /> {/* Using Book icon for Infirmary, can be changed later */}
-                <span>Infirmary</span>
+                <span>Pharmacist</span>
               </button>
             </nav>
           </aside>

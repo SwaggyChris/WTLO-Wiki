@@ -1,0 +1,312 @@
+[
+{
+  "id": "1768046137663",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2199,
+    "y": 2193
+  },
+  "grid": "C3-9",
+  "category": "NPCs",
+  "subCategory": "Doctor",
+  "description": "Main doctor of Solar city - can be taken quests , trade resources and purchase meds.",
+  "popup": "<strong>The Doc</strong><br>Grid: C3-9<br><em>Main doctor of Solar city - can be taken quests , trade resources and purchase meds.</em>",
+  "icon": "/markers/NPCDoctor.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T11:56:56.452Z",
+  "updatedAt": "2026-01-10T11:56:56.452Z"
+},
+{
+  "id": "1768046499582",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2260,
+    "y": 2390
+  },
+  "grid": "C3-2",
+  "category": "NPCs",
+  "subCategory": "Trader",
+  "description": "Main trader in Solar City - can be given quests and commision for selling items to other players.",
+  "popup": "<strong>Rafik</strong><br>Grid: C3-2<br><em>Main trader in Solar City - can be given quests and commision for selling items to other players.</em>",
+  "icon": "/markers/NPCTrader.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T12:02:36.021Z",
+  "updatedAt": "2026-01-10T12:02:36.021Z"
+},
+{
+  "id": "1768046633552",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2230,
+    "y": 2390
+  },
+  "grid": "C3-2",
+  "category": "NPCs",
+  "subCategory": "Gunsmith",
+  "description": "-Repairs weapon\n- Sells Paint spray cans for weapon and armor \n- Can be given quests ",
+  "popup": "<strong>Gunsmith </strong><br>Grid: C3-2<br><em>-Repairs weapon\n- Sells Paint spray cans for weapon and armor \n- Can be given quests </em>",
+  "icon": "/markers/NPCGunsmith.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T12:08:20.834Z",
+  "updatedAt": "2026-01-10T12:08:20.834Z"
+},
+{
+  "id": "1768047255752",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2192,
+    "y": 2430
+  },
+  "grid": "C3-2",
+  "category": "NPCs",
+  "subCategory": "Stockman",
+  "description": "NPC where you purchase for personal storage plus you can expand it up to 500.00kg of space! ",
+  "popup": "<strong>Stockman</strong><br>Grid: C4<br><em>NPC where you purchase for personal storage plus you can expand it up to 500.00kg of space! </em>",
+  "icon": "/markers/NPCStockman.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T12:15:55.116Z",
+  "updatedAt": "2026-01-10T12:15:55.116Z"
+},
+{
+  "id": "1768047674421",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2216,
+    "y": 2685
+  },
+  "grid": "C3-2",
+  "category": "NPCs",
+  "subCategory": "Quest Giver",
+  "description": "Main NPC of the city which will give you all main quests for the ability to join a faction. He is also the main npc to join Confederation. ",
+  "popup": "<strong>Mihalich</strong><br>Grid: C3-2<br><em>Main NPC of the city which will give you all main quests for the ability to join a faction. He is also the main npc to join Confederation. </em>",
+  "icon": "/markers/QuestPoint.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T12:22:18.125Z",
+  "updatedAt": "2026-01-10T12:22:18.125Z"
+},
+{
+  "id": "1768047920335",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2307,
+    "y": 2689
+  },
+  "grid": "C3-3",
+  "category": "NPCs",
+  "subCategory": "Barman",
+  "description": "Barman of Solar City -   You can buy food and drinks but given quests. ",
+  "popup": "<strong>Barman</strong><br>Grid: C3-3<br><em>Barman of Solar City -   You can buy food and drinks but given quests. </em>",
+  "icon": "/markers/NPCTrader.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T13:06:02.030Z",
+  "updatedAt": "2026-01-10T13:06:02.030Z"
+},
+{
+    "id": "1768057666398",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1298,
+      "y": 2807
+    },
+    "grid": "B2-5",
+    "category": "Entrances/Exits",
+    "subCategory": "Town Exit",
+    "description": "This is the northern town exit head near train station.",
+    "popup": "<strong>North Town Exit</strong><br>Grid: B2-5<br><em>This is the northern town exit head near train station.</em>",
+    "icon": "/markers/Portal.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:09:03.992Z",
+    "updatedAt": "2026-01-10T15:09:03.992Z"
+  },
+  {
+    "id": "1768057756941",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1318,
+      "y": 2107
+    },
+    "grid": "B3-4",
+    "category": "Entrances/Exits",
+    "subCategory": "Town Exit",
+    "description": "South west town exit point headed near MTE.",
+    "popup": "<strong>South West Town Exit</strong><br>Grid: B3-4<br><em>South west town exit point headed near MTE.</em>",
+    "icon": "/markers/Portal.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:10:46.107Z",
+    "updatedAt": "2026-01-10T15:10:46.107Z"
+  },
+  {
+    "id": "1768057854186",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 2701,
+      "y": 1995
+    },
+    "grid": "B5",
+    "category": "Entrances/Exits",
+    "subCategory": "Town Exit",
+    "description": "Eastern Town exit heard near Railway Bridge. ",
+    "popup": "<strong>East Town Exit</strong><br>Grid: B5<br><em>Eastern Town exit heard near Railway Bridge. </em>",
+    "icon": "/markers/Portal.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:12:06.636Z",
+    "updatedAt": "2026-01-10T15:12:06.636Z"
+  },
+  {
+    "id": "1768057940570",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 2278,
+      "y": 3075
+    },
+    "grid": "C4",
+    "category": "Monsters",
+    "subCategory": "Small Rats",
+    "description": "Small Rats from level 1-6 , there will appear on the whole section of the city as being the highest level in Solar City. ",
+    "popup": "<strong>Small Rats</strong><br>Grid: C4<br><em>Small Rats from level 1-6 , there will appear on the whole section of the city as being the highest level in Solar City. </em>",
+    "icon": "/markers/Monster.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:34:27.067Z",
+    "updatedAt": "2026-01-10T15:34:27.067Z"
+  },
+  {
+    "id": "1768059378044",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1735,
+      "y": 2401
+    },
+    "grid": "C3-1",
+    "category": "Monsters",
+    "subCategory": "Stray Dogs",
+    "description": "Stray dogs from level 1-2 which is the lowest level in Solar city. ",
+    "popup": "<strong>Stray Dogs</strong><br>Grid: C3-1<br><em>Stray dogs from level 1-2 which is the lowest level in Solar city. </em>",
+    "icon": "/markers/Monster.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:39:00.876Z",
+    "updatedAt": "2026-01-10T15:39:00.876Z"
+  },
+  {
+    "id": "1768059545507",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1795,
+      "y": 1817
+    },
+    "grid": "C3-8",
+    "category": "Monsters",
+    "subCategory": "Stray Dogs",
+    "description": "Stray Dogs lvl 5-6 which are the highest level yet in Solar City",
+    "popup": "<strong>Stray Dogs</strong><br>Grid: C3-8<br><em>Stray Dogs lvl 5-6 which are the highest level  in Solar City</em>",
+    "icon": "/markers/Monster.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:40:09.532Z",
+    "updatedAt": "2026-01-10T15:40:09.532Z"
+  },
+  {
+    "id": "1768059617811",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1451,
+      "y": 2300
+    },
+    "grid": "B3-1",
+    "category": "Loot",
+    "subCategory": "Water Source",
+    "description": "A Well to get water , it is also one of the first quest from the Bar. ",
+    "popup": "<strong>Water</strong><br>Grid: B3-1<br><em>A Well to get water , it is also one of the first quest from the Bar. </em>",
+    "icon": "/markers/WaterSource.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:42:00.494Z",
+    "updatedAt": "2026-01-10T15:42:00.494Z"
+  },
+  {
+    "id": "1768059864819",
+    "map": "maps/T_Data_Map_Solar_City_Town.png",
+    "coordinates": {
+      "x": 1290,
+      "y": 2671
+    },
+    "grid": "B3-3",
+    "category": "Loot",
+    "subCategory": "Tools",
+    "description": "An item used for crafting lockpicks.",
+    "popup": "<strong>Steel Wires</strong><br>Grid: B3-3<br><em>An item used for crafting lockpicks.</em>",
+    "icon": "/markers/Unknown Area.png",
+    "customColor": "#ffffff",
+    "createdAt": "2026-01-10T15:45:35.390Z",
+    "updatedAt": "2026-01-10T15:45:35.390Z"
+  },
+  {
+  "id": "1768060317871",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2688,
+    "y": 2062
+  },
+  "grid": "C3-4",
+  "category": "Loot",
+  "subCategory": "Tools",
+  "description": "An item used to craft lockpicks.",
+  "popup": "<strong>Steel Wires</strong><br>Grid: C3-4<br><em>An item used to craft lockpicks.</em>",
+  "icon": "/markers/Unknown Area.png",
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-10T15:52:49.023Z",
+  "updatedAt": "2026-01-10T15:52:49.023Z"
+},
+{
+  "id": "1768841896122",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 2388,
+    "y": 1777
+  },
+  "grid": "B4",
+  "category": "Entrances/Exits",
+  "subCategory": "Town Exit",
+  "description": "",
+  "popup": "<div id=\"marker-popup-1768841896122\"><div id=\"marker-popup-1768841896122-slot-0\" class=\"slot-content\" style=\"display:block;margin-top:6px;text-align:left\"><div style=\"font-weight:bold\">Southern Town exit  </div><div style=\"margin-top:4px\">South exit and entrance point of Solar City </div><div style=\"margin-top:6px\"><span style=\"margin-right:6px;color:#9ad\">#SolarCity</span></div></div></div>",
+  "icon": "/markers/Portal.png",
+  "iconSlots": [
+    {
+      "icon": "/markers/Portal.png",
+      "title": "Southern Town exit  ",
+      "description": "South exit and entrance point of Solar City ",
+      "subCategory": "",
+      "hashtags": "#SolarCity"
+    }
+  ],
+  "hashtags": [],
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-19T17:00:44.201Z",
+  "updatedAt": "2026-01-19T17:00:44.202Z"
+},
+{
+  "id": "1768981948919",
+  "map": "maps/T_Data_Map_Solar_City_Town.png",
+  "coordinates": {
+    "x": 1686,
+    "y": 3330
+  },
+  "grid": "C2-8",
+  "category": "Loot",
+  "subCategory": "Ammo",
+  "description": "",
+  "popup": "<div id=\"marker-popup-1768981948919\"><div id=\"marker-popup-1768981948919-slot-0\" class=\"slot-content\" style=\"display:block;margin-top:6px;text-align:left\"><div style=\"font-weight:bold\">9x18 PM FMJ </div><div style=\"margin-top:4px\">In a green storage box can be found 10 rounds of 9x18 PM FMJ ammo</div><div style=\"margin-top:6px\"></div></div></div>",
+  "icon": "/markers/Ammo.png",
+  "iconSlots": [
+    {
+      "icon": "/markers/Ammo.png",
+      "title": "9x18 PM FMJ ",
+      "description": "In a green storage box can be found 10 rounds of 9x18 PM FMJ ammo",
+      "subCategory": "",
+      "hashtags": ""
+    }
+  ],
+  "hashtags": [],
+  "customColor": "#ffffff",
+  "createdAt": "2026-01-21T07:53:42.979Z",
+  "updatedAt": "2026-01-21T07:53:42.979Z"
+}
+
+]   

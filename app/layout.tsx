@@ -4,11 +4,7 @@ import "./globals.css"
 
 
 export const metadata: Metadata = {
-<<<<<<< HEAD
   title: "WTLO Wiki",
-=======
-  title: "WTLO",
->>>>>>> 27388ac2a7a233b3fba15223bff6fb747a20ac51
   description: "Created with v0",
   generator: "v0.app",
 }
