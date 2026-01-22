@@ -133,6 +133,7 @@ export const initialLegendCategories = {
     expanded: false,
     subItems: {
       'Ammo': false,
+      'Tools': false,
       'Medicine': false,
       'Food': false,
       'Armor': false,
@@ -172,7 +173,7 @@ export const initialLegendCategories = {
     expanded: false,
     subItems: {}
   },
-  'Plant': {
+  'Plants': {
     checked: false,
     expanded: false,
     subItems: {
@@ -181,6 +182,7 @@ export const initialLegendCategories = {
         'Cep': false,
         'Rose Bay': false,
         'Nettle': false,
+        'Other herbs': false
     }
   },
   'Artifacts': {

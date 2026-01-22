@@ -1,5 +1,5 @@
 // markers.ts - Marker system logic
-import markerData from './markers.json';
+import markerData from './SolarCity.json';
 
 export interface Marker {
   id: string;
@@ -52,18 +52,18 @@ export const getIconForCategory = (category: string): string => {
     'Loot': '/markers/Loot.png',
     'Anomalies': '/markers/Anomaly.png',
     'Season Bosses': '/markers/Boss.png',
-    'Teleports': '/markers/Default.png',
+    'Teleports': '/markers/Simple Marker.png',
     'Quest Item': '/markers/Loot.png',
-    'Safe zones': '/markers/Default.png',
+    'Safe zones': '/markers/Simple Marker.png',
     'Gasoline': '/markers/Loot.png',
-    'Base': '/markers/Default.png',
-    'Plant': '/markers/Default.png',
+    'Base': '/markers/Simple Marker.png',
+    'Plant': '/markers/Simple Marker.png',
     'Artifacts': '/markers/Loot.png',
     'Radiation zone': '/markers/Anomaly.png',
     'Key': '/markers/Loot.png',
-    'Event Area': '/markers/Default.png'
+    'Event Area': '/markers/Simple Marker.png'
   };
-  return map[category] || '/markers/Default.png';
+  return map[category] || '/markers/Simple Marker.png';
 };
 
 export const updateMarkers = async (

@@ -22,6 +22,8 @@ const markerIcons = [
   "Ammo.png",
   "Artifact.png",
   "Clothes.png",
+  "Crafting Materials.png",
+  "Crafting Tool.png",
   "Danger.png",
   "Food.png",
   "Forest.png",
@@ -30,6 +32,7 @@ const markerIcons = [
   "Key.png",
   "Marked Location.png",
   "Medicine.png",
+  "Miscellaneous.png",
   "Monster.png",
   "NDP Teleport.png",
   "NPC.png",
@@ -91,6 +94,9 @@ export default function MapPage() {
   // Custom markers from editor
   const [customMarkers, setCustomMarkers] = useState<any[]>([])
 
+  // Custom icon state
+  const [customIconImage, setCustomIconImage] = useState<string | null>(null)
+
   // --- MARKER EDITOR STATE ---
   const [editorMode, setEditorMode] = useState(false)
   const [pendingMarker, setPendingMarker] = useState<any | null>(null)
@@ -114,6 +120,61 @@ export default function MapPage() {
     expanded?: boolean;
     subItems: Record<string, boolean>;
   }>>(initialLegendCategories)
+
+  // Function to handle custom icon upload
+  const handleCustomIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setCustomIconImage(dataUrl);
+      
+      // Set the custom icon as the main icon in the form
+      if (editorForm.iconSlots.length === 0) {
+        setEditorForm((prev: any) => ({
+          ...prev,
+          iconSlots: [{ icon: dataUrl }]
+        }));
+      } else {
+        setEditorForm((prev: any) => ({
+          ...prev,
+          iconSlots: prev.iconSlots.map((s: any, idx: number) => 
+            idx === 0 ? { ...s, icon: dataUrl } : s
+          )
+        }));
+      }
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  // Function to remove custom icon
+  const removeCustomIcon = () => {
+    setCustomIconImage(null);
+    // Reset to default icon
+    if (editorForm.iconSlots.length > 0) {
+      setEditorForm((prev: any) => ({
+        ...prev,
+        iconSlots: prev.iconSlots.map((s: any, idx: number) => 
+          idx === 0 ? { ...s, icon: '/markers/Simple Marker.png' } : s
+        )
+      }));
+    }
+  };
 
   // Drag functionality for WTLO Menu
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -404,6 +465,9 @@ export default function MapPage() {
         hashtags: '',
         descriptionImage: null
       });
+      
+      // Clear custom icon
+      setCustomIconImage(null);
     };
 
     if (editorMode) {
@@ -413,6 +477,7 @@ export default function MapPage() {
       map.off('click', onMapClick);
       document.getElementById('map-container-div')?.style.setProperty('cursor', 'default');
       setPendingMarker(null);
+      setCustomIconImage(null);
     }
 
     return () => {
@@ -493,6 +558,7 @@ export default function MapPage() {
       hashtags: '',
       descriptionImage: null
     });
+    setCustomIconImage(null);
   };
 
   // --- REMOVE MARKER FUNCTION ---
@@ -516,6 +582,7 @@ export default function MapPage() {
       hashtags: '',
       descriptionImage: null
     });
+    setCustomIconImage(null);
   };
 
   // --- EXPORT JSON FUNCTION ---
@@ -1367,7 +1434,7 @@ export default function MapPage() {
                     borderRadius: '4px',
                     border: '1px solid #333'
                   }}>
-                    {markerIcons.slice(0, 16).map(iconFile => (
+                    {markerIcons.map(iconFile => (
                       <button 
                         key={iconFile} 
                         onClick={() => {
@@ -1376,15 +1443,17 @@ export default function MapPage() {
                             setEditorForm((prev:any) => ({
                               ...prev, 
                               iconSlots: [{ icon: url }]
-                            }))
+                            }));
                           } else {
                             setEditorForm((prev:any) => ({
                               ...prev, 
                               iconSlots: prev.iconSlots.map((s:any, idx:number) => 
                                 idx === 0 ? { ...s, icon: url } : s
                               )
-                            }))
+                            }));
                           }
+                          // Clear custom icon when selecting a pre-made icon
+                          setCustomIconImage(null);
                         }}
                         title={iconFile.replace('.png', '')}
                         style={{
@@ -1408,6 +1477,106 @@ export default function MapPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Custom Icon Upload Section */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '8px', display: 'block' }}>
+                    Custom Icon:
+                  </label>
+                  
+                  {customIconImage ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img 
+                          src={customIconImage} 
+                          alt="Custom Icon" 
+                          style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            objectFit: 'contain',
+                            borderRadius: '4px',
+                            border: '2px solid #4CAF50',
+                            padding: '2px'
+                          }} 
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ 
+                            fontSize: '10px', 
+                            color: '#4CAF50', 
+                            marginBottom: '4px',
+                            fontWeight: 'bold'
+                          }}>
+                            Custom Icon Active
+                          </div>
+                          <button
+                            onClick={removeCustomIcon}
+                            style={{
+                              background: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Trash2 size={10} /> Remove Custom Icon
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ 
+                        fontSize: '10px', 
+                        color: '#888',
+                        textAlign: 'center'
+                      }}>
+                        Click a pre-made icon above to switch back
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="file"
+                        id="custom-icon-upload"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleCustomIconUpload}
+                      />
+                      <button
+                        onClick={() => document.getElementById('custom-icon-upload')?.click()}
+                        style={{
+                          background: 'linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)',
+                          color: 'white',
+                          border: '1px dashed rgba(255,255,255,0.3)',
+                          padding: '8px 12px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          width: '100%',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        <Upload size={14} /> Upload Custom Icon
+                      </button>
+                      <div style={{ 
+                        fontSize: '9px', 
+                        color: '#666', 
+                        marginTop: '4px',
+                        textAlign: 'center'
+                      }}>
+                        PNG, JPG, SVG • Max 2MB
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Title */}
