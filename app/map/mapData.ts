@@ -2,21 +2,96 @@ import { sub } from "date-fns";
 
 // mapData.ts - Map locations and legend data
 export const availableMaps = [
-  { name: "Default Map", file: "maps/T_Data_Map_Default.png", displayName: "Default" },
-  { name: "Camp", file: "maps/T_Data_Map_Camp.png", displayName: "Camp" },
-  { name: "Solenchy Town", file: "maps/T_Data_Map_Solar_City_Town.png", displayName: "Solenchy Town" },
-  { name: "Solenchy Outskirts", file: "maps/T_Data_Map_Solar_City.png", displayName: "Solenchy Outskirts" },
-  { name: "MTE", file: "maps/T_Data_Map_Solar_City_Hangar.png", displayName: "MTE" },
-  { name: "Minaev Mine", file: "maps/T_Data_Map_Minaev_Mine.png", displayName: "Minaev Mine" },
-  { name: "Swamps", file: "maps/T_Data_Map_Swamp.png", displayName: "Swamps" },
-  { name: "Dead Forest", file: "maps/T_Data_Map_Dead_Forest.png", displayName: "Dead Forest" },
-  { name: "PVP Arena", file: "maps/T_Data_Map_PVP_Arena.png", displayName: "PVP Arena" },
-  { name: "PVP Arena MTE", file: "maps/T_Data_PvP_Arena_MTE.png", displayName: "PVP Arena MTE" },
-  { name: "Exclusion Zone", file: "maps/T_Data_Map_Deadlands.png", displayName: "Exclusion Zone" },
-  { name: "Canyon", file: "maps/T_Data_Map_Canyon.png", displayName: "Canyon" },
-  { name: "Testing Grounds", file: "maps/T_Data_Map_Testing_Ground.png", displayName: "Testing Grounds" },
-  { name: "Coast", file: "maps/T_Data_Map_Coast.png", displayName: "Coast" },
-  { name: "Foothills", file: "maps/T_Data_Map_Career.png", displayName: "Foothills" }
+  { 
+    name: "Default Map", 
+    file: "maps/T_Data_Map_Default.png", 
+    displayName: "Default",
+    jsonFile: "Default.json"
+  },
+  { 
+    name: "Camp", 
+    file: "maps/T_Data_Map_Camp.png", 
+    displayName: "Camp",
+    jsonFile: "Camp.json"
+  },
+  { 
+    name: "Solenchy Town", 
+    file: "maps/T_Data_Map_Solar_City_Town.png", 
+    displayName: "Solenchy Town",
+    jsonFile: "SolarCity.json"
+  },
+  { 
+    name: "Solenchy Outskirts", 
+    file: "maps/T_Data_Map_Solar_City.png", 
+    displayName: "Solenchy Outskirts",
+    jsonFile: "Solenchy.json"
+  },
+  { 
+    name: "MTE", 
+    file: "maps/T_Data_Map_Solar_City_Hangar.png", 
+    displayName: "MTE",
+    jsonFile: "MTE.json"
+  },
+  { 
+    name: "Minaev Mine", 
+    file: "maps/T_Data_Map_Minaev_Mine.png", 
+    displayName: "Minaev Mine",
+    jsonFile: "Minaev_Mine.json"
+  },
+  { 
+    name: "Swamps", 
+    file: "maps/T_Data_Map_Swamp.png", 
+    displayName: "Swamps",
+    jsonFile: "Swamps.json"
+  },
+  { 
+    name: "Dead Forest", 
+    file: "maps/T_Data_Map_Dead_Forest.png", 
+    displayName: "Dead Forest",
+    jsonFile: "Dead_Forest.json"
+  },
+  { 
+    name: "PVP Arena", 
+    file: "maps/T_Data_Map_PVP_Arena.png", 
+    displayName: "PVP Arena",
+    jsonFile: "PVP_Arena.json"
+  },
+  { 
+    name: "PVP Arena MTE", 
+    file: "maps/T_Data_PvP_Arena_MTE.png", 
+    displayName: "PVP Arena MTE",
+    jsonFile: "PVP_Arena_MTE.json"
+  },
+  { 
+    name: "Exclusion Zone", 
+    file: "maps/T_Data_Map_Deadlands.png", 
+    displayName: "Exclusion Zone",
+    jsonFile: "Exclusion_Zone.json"
+  },
+  { 
+    name: "Canyon", 
+    file: "maps/T_Data_Map_Canyon.png", 
+    displayName: "Canyon",
+    jsonFile: "Canyon.json"
+  },
+  { 
+    name: "Testing Grounds", 
+    file: "maps/T_Data_Map_Testing_Ground.png", 
+    displayName: "Testing Grounds",
+    jsonFile: "Testing_Grounds.json"
+  },
+  { 
+    name: "Coast", 
+    file: "maps/T_Data_Map_Coast.png", 
+    displayName: "Coast",
+    jsonFile: "Coast.json"
+  },
+  { 
+    name: "Foothills", 
+    file: "maps/T_Data_Map_Career.png", 
+    displayName: "Foothills",
+    jsonFile: "Foothills.json"
+  }
 ];
 
 
@@ -111,14 +186,16 @@ export const initialLegendCategories = {
     checked: false,
     expanded: false,
     subItems: {
-      'Toxic': false
+      'Gravitation Field': false,
+      'Web Anomaly': false,
+      'Burn Anomaly': false,
+      'Tornado Anomaly': false,
     }
   },
   'Teleports': {
     checked: false,
     expanded: false,
     subItems: {
-      'To Swamps': false
     }
   },
   'Quest Item': {
@@ -138,6 +215,7 @@ export const initialLegendCategories = {
       'Food': false,
       'Armor': false,
       'Artifact': false,
+      'Modules': false,
       'Electronics': false,
       'Crafting Tools': false,
       'Crafting Materials': false,
@@ -154,7 +232,6 @@ export const initialLegendCategories = {
       'Town Exit': false,
       'Camp Entrance': false,
       'Camp Exit': false,
-      'Gateway': false
     }
   },
   'Safe zones': {
@@ -165,6 +242,7 @@ export const initialLegendCategories = {
       'Town Exit': false,
       'Camp Entrance': false,
       'Camp Exit': false,
+      'Blockpost': false
       
     }
   },

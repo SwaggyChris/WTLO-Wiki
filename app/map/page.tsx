@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Upload, X, Image as ImageIcon, Hash, Trash2, Save, XCircle, Download, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Upload, X, Image as ImageIcon, Hash, Trash2, Save, XCircle, Download, Eye, EyeOff, Loader2, Edit2, Palette } from "lucide-react"
 // Leaflet is dynamically imported on the client. Avoid importing at top-level to prevent server-side window access.
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
@@ -15,7 +15,7 @@ import styles from "./map.module.css"
 
 // Import separated data and functions
 import { availableMaps, initialLegendCategories } from "./mapData"
-import { updateMarkers, coordinatesToGrid, getIconForCategory } from "./markers" //
+import { updateMarkers, coordinatesToGrid, getIconForCategory, loadMarkersForMap, Marker } from "./markers" // Updated import
 
 // Use actual files present in public/markers
 const markerIcons = [
@@ -63,7 +63,7 @@ export default function MapPage() {
   const [showMapMenu, setShowMapMenu] = useState(false)
   const [showLegendMenu, setShowLegendMenu] = useState(false)
   const [showWtlomenu, setShowWtlomenu] = useState(false)
-  const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Solar_City_Town.png")
+  const [currentMap, setCurrentMap] = useState("maps/T_Data_Map_Solar_City.png")
   const [pdaSkin, setPdaSkin] = useState<string>('/PDA.png')
   const [pdaOn, setPdaOn] = useState<boolean>(true)
   const [pdaNatural, setPdaNatural] = useState<{w:number,h:number}|null>(null)
@@ -91,6 +91,10 @@ export default function MapPage() {
   const [markers, setMarkers] = useState<any[]>([])
   const [leafletRef, setLeafletRef] = useState<any>(null)
 
+  // Loaded markers from JSON files
+  const [loadedMarkers, setLoadedMarkers] = useState<Marker[]>([])
+  const [isLoadingMarkers, setIsLoadingMarkers] = useState(false)
+
   // Custom markers from editor
   const [customMarkers, setCustomMarkers] = useState<any[]>([])
 
@@ -100,6 +104,7 @@ export default function MapPage() {
   // --- MARKER EDITOR STATE ---
   const [editorMode, setEditorMode] = useState(false)
   const [pendingMarker, setPendingMarker] = useState<any | null>(null)
+  const [editingMarker, setEditingMarker] = useState<any | null>(null)
   const [editorForm, setEditorForm] = useState<any>({
     id: '',
     grid: '',
@@ -110,9 +115,20 @@ export default function MapPage() {
     title: '',
     description: '',
     hashtags: '',
-    descriptionImage: null as string | null
+    descriptionImage: null as string | null,
+    // New fields for tag customization
+    tagBackground: '#ffffff',
+    tagBorderColor: '#000000',
+    tagTextColor: '#000000',
+    additionalImages: [] as any[],
+    tagImage: null as string | null,
+    tagImageSize: { width: 50, height: 50 }
   })
   
+  // Image size options state
+  const [showImageSizeOptions, setShowImageSizeOptions] = useState(false)
+  const [imageSize, setImageSize] = useState({ width: 50, height: 50 })
+
   // ---------------------------
   // Updated Legend categories state structure with nested sub-items
   const [legendCategories, setLegendCategories] = useState<Record<string, {
@@ -120,6 +136,27 @@ export default function MapPage() {
     expanded?: boolean;
     subItems: Record<string, boolean>;
   }>>(initialLegendCategories)
+
+  // Function to load markers for the current map
+  const loadMarkersForCurrentMap = async () => {
+    if (!currentMap) return;
+    
+    setIsLoadingMarkers(true);
+    try {
+      const markers = await loadMarkersForMap(currentMap, availableMaps);
+      setLoadedMarkers(markers);
+    } catch (error) {
+      console.error('Failed to load markers:', error);
+      setLoadedMarkers([]);
+    } finally {
+      setIsLoadingMarkers(false);
+    }
+  };
+
+  // Load markers when map changes
+  useEffect(() => {
+    loadMarkersForCurrentMap();
+  }, [currentMap]);
 
   // Function to handle custom icon upload
   const handleCustomIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -365,55 +402,25 @@ export default function MapPage() {
       mapInstanceRef.current?.removeLayer(marker)
     });
     
+    // Combine loaded markers with custom markers
+    const allMarkers = [...loadedMarkers, ...customMarkersData];
+    
     // Get new markers from the imported function
     const newMarkers = await updateMarkers(
       mapInstanceRef.current,
       leafletRef,
       currentMap,
-      legendCategories
+      legendCategories,
+      allMarkers // Use combined markers
     );
     
-    // Add custom markers if any
-    customMarkersData.forEach((markerInfo: any) => {
-      const { map, category, subCategory, grid, coordinates, iconSlots, icon, popup } = markerInfo;
-
-      if (map === currentMap) {
-        const isVisible = legendCategories[category]?.subItems[subCategory] || editorMode; 
-        
-        if (isVisible) {
-          let coords;
-          if (coordinates) {
-            coords = coordinates;
-          } else if (grid) {
-            coords = coordinates;
-          } else {
-            return; 
-          }
-          
-          const chosenIconUrl = (iconSlots && iconSlots.length && iconSlots[0]) ? (typeof iconSlots[0] === 'string' ? iconSlots[0] : iconSlots[0].icon) : icon;
-          const customIcon = leafletRef.icon({
-            iconUrl: chosenIconUrl,
-            iconSize: [24, 24],
-            iconAnchor: [12, 24],
-            popupAnchor: [0, -24]
-          });
-
-          const marker = leafletRef.marker([coords.y, coords.x], { icon: customIcon })
-            .addTo(mapInstanceRef.current)
-            .bindPopup(popup);
-          
-          newMarkers.push(marker);
-        }
-      }
-    });
-
     setMarkers(newMarkers);
   }
 
   // Update markers when conditions change
   useEffect(() => {
     updateMarkersHandler(customMarkers)
-  }, [currentMap, legendCategories, customMarkers, editorMode])
+  }, [currentMap, legendCategories, customMarkers, editorMode, loadedMarkers])
 
   // Handle custom markers from editor
   const handleSaveCustomMarkers = (newMarkers: any[]) => {
@@ -428,7 +435,7 @@ export default function MapPage() {
     const map = mapInstanceRef.current;
 
     const onMapClick = (e: any) => {
-      if (!editorMode) return;
+      if (!editorMode || editingMarker) return;
 
       const { lat, lng } = e.latlng;
       
@@ -447,7 +454,14 @@ export default function MapPage() {
         subCategory: '',
         description: '',
         popup: '<strong>New Marker</strong>',
-        icon: '/markers/Simple Marker.png'
+        icon: '/markers/Simple Marker.png',
+        // Default tag styling
+        tagBackground: '#ffffff',
+        tagBorderColor: '#000000',
+        tagTextColor: '#000000',
+        additionalImages: [],
+        tagImage: null,
+        tagImageSize: { width: 50, height: 50 }
       };
 
       setPendingMarker(newMarker);
@@ -463,27 +477,117 @@ export default function MapPage() {
         title: '',
         description: '',
         hashtags: '',
-        descriptionImage: null
+        descriptionImage: null,
+        tagBackground: '#ffffff',
+        tagBorderColor: '#000000',
+        tagTextColor: '#000000',
+        additionalImages: [],
+        tagImage: null,
+        tagImageSize: { width: 50, height: 50 }
       });
       
       // Clear custom icon
       setCustomIconImage(null);
     };
 
-    if (editorMode) {
+    if (editorMode && !editingMarker) {
       map.on('click', onMapClick);
       document.getElementById('map-container-div')?.style.setProperty('cursor', 'crosshair');
     } else {
       map.off('click', onMapClick);
       document.getElementById('map-container-div')?.style.setProperty('cursor', 'default');
-      setPendingMarker(null);
-      setCustomIconImage(null);
+      if (!editingMarker) {
+        setPendingMarker(null);
+        setCustomIconImage(null);
+      }
     }
 
     return () => {
       map.off('click', onMapClick);
     };
-  }, [editorMode, currentMap, leafletRef, legendCategories]);
+  }, [editorMode, currentMap, leafletRef, legendCategories, editingMarker]);
+
+  // --- GENERATE POPUP HTML FUNCTION ---
+  const generatePopupHtml = (
+    id: string,
+    icon: string,
+    title: string,
+    description: string,
+    hashtags: string[],
+    descriptionImage: string | null,
+    tagBackground: string,
+    tagBorderColor: string,
+    tagTextColor: string,
+    additionalImages: any[],
+    tagImage: string | null,
+    tagImageSize: { width: number, height: number } = { width: 50, height: 50 }
+  ) => {
+    const popupId = `marker-popup-${id}`;
+    
+    // Create tag HTML with custom styling
+    const tagStyle = `
+      background: ${tagBackground};
+      border: 2px solid ${tagBorderColor};
+      color: ${tagTextColor};
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 8px 0;
+      display: inline-block;
+      font-weight: bold;
+      min-width: 200px;
+    `;
+    
+    // Additional images HTML
+    const additionalImagesHtml = additionalImages.map((img, idx) => `
+      <div style="margin: 10px 0;">
+        <img src="${img.url}" 
+             alt="${img.caption || 'Additional image'}" 
+             style="max-width: ${img.width || 150}px; 
+                    max-height: ${img.height || 150}px; 
+                    border-radius: 4px;
+                    border: 1px solid #ddd;" />
+        ${img.caption ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${img.caption}</div>` : ''}
+      </div>
+    `).join('');
+    
+    // Tag image if exists
+    const tagImageHtml = tagImage ? `
+      <img src="${tagImage}" 
+           alt="Tag Image" 
+           style="width: ${tagImageSize.width}px; 
+                  height: ${tagImageSize.height}px; 
+                  border-radius: 4px;
+                  display: inline-block;
+                  vertical-align: middle;
+                  margin-right: 8px;
+                  object-fit: cover;" />
+    ` : '';
+
+    return `
+      <div id="${popupId}" style="min-width: 250px;">
+        <div style="${tagStyle}">
+          ${tagImageHtml}
+          <div style="display: inline-block; vertical-align: middle;">
+            <strong>${title || 'Marker'}</strong>
+          </div>
+        </div>
+        <div style="margin: 10px 0; font-size: 14px; color: #333; white-space: pre-wrap;">
+          ${description || ''}
+        </div>
+        ${descriptionImage ? `
+          <div style="margin: 10px 0;">
+            <img src="${descriptionImage}" 
+                 alt="Description" 
+                 style="max-width: 250px; max-height: 150px; border-radius: 4px;" />
+          </div>
+        ` : ''}
+        ${additionalImagesHtml}
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">
+          ${hashtags.map(tag => `<span style="margin-right: 6px; background: #e9e9e9; padding: 2px 6px; border-radius: 3px;">${tag}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  };
 
   // --- SAVE MARKER FUNCTION ---
   const handleSaveMarker = () => {
@@ -502,27 +606,21 @@ export default function MapPage() {
     const iconSlots = [mainIconSlot, ...(editorForm.iconSlots.slice(1) || [])];
     const hashtagsArr = editorForm.hashtags ? editorForm.hashtags.split(',').map((s:string)=>s.trim()).filter(Boolean) : [];
 
-    // Build popup HTML
-    const popupId = `marker-popup-${editorForm.id}`;
-    
-    // Secondary icons
-    const iconsHtml = iconSlots.slice(1).map((s: any, idx: number) => {
-      const safeTitle = (s.description || '').replace(/"/g, '&quot;');
-      const onclick = `(function(){const root=document.getElementById('${popupId}'); if(!root) return; Array.from(root.querySelectorAll('.slot-content')).forEach(function(el){ el.style.display='none'; }); var target=root.querySelector('#${popupId}-slot-${idx+1}'); if(target) target.style.display='block';})()`;
-      return `<img src="${s.icon}" title="${safeTitle}" style="width:22px;height:22px;margin:2px;cursor:pointer;border:1px solid #444;border-radius:3px" onclick="${onclick}" />`;
-    }).join('');
-
-    // Slot content
-    const slotsContentHtml = iconSlots.map((s: any, idx: number) => {
-      const hashtagsForSlot = (s.hashtags || '') ? s.hashtags.split(',').map((h:string)=>h.trim()).filter(Boolean).map((h:string)=>`<span style="margin-right:6px;color:#9ad">${h}</span>`).join('') : '';
-      const title = s.title || s.subCategory || '';
-      const desc = s.description || '';
-      const display = idx === 0 ? 'block' : 'none';
-      const imageHtml = s.descriptionImage ? `<div style="margin: 10px 0;"><img src="${s.descriptionImage}" alt="Description" style="max-width: 100%; border-radius: 4px;" /></div>` : '';
-      return `<div id="${popupId}-slot-${idx}" class="slot-content" style="display:${display};margin-top:6px;text-align:left"><div style="font-weight:bold">${title}</div><div style="margin-top:4px">${desc}</div>${imageHtml}<div style="margin-top:6px">${hashtagsForSlot}</div></div>`;
-    }).join('');
-
-    const popupHtml = `<div id="${popupId}">${iconsHtml}${slotsContentHtml}</div>`;
+    // Build popup HTML using the new function
+    const popupHtml = generatePopupHtml(
+      editorForm.id,
+      mainIconSlot.icon,
+      editorForm.title,
+      editorForm.description,
+      hashtagsArr,
+      editorForm.descriptionImage,
+      editorForm.tagBackground,
+      editorForm.tagBorderColor,
+      editorForm.tagTextColor,
+      editorForm.additionalImages || [],
+      editorForm.tagImage,
+      editorForm.tagImageSize
+    );
 
     const finalMarker = {
       ...pendingMarker,
@@ -536,6 +634,13 @@ export default function MapPage() {
       iconSlots,
       hashtags: hashtagsArr,
       descriptionImage: editorForm.descriptionImage,
+      // New properties for tag customization
+      tagBackground: editorForm.tagBackground,
+      tagBorderColor: editorForm.tagBorderColor,
+      tagTextColor: editorForm.tagTextColor,
+      additionalImages: editorForm.additionalImages || [],
+      tagImage: editorForm.tagImage,
+      tagImageSize: editorForm.tagImageSize,
       popup: popupHtml,
       customColor: "#ffffff",
       createdAt: new Date().toISOString(),
@@ -556,7 +661,167 @@ export default function MapPage() {
       title: '',
       description: '',
       hashtags: '',
-      descriptionImage: null
+      descriptionImage: null,
+      tagBackground: '#ffffff',
+      tagBorderColor: '#000000',
+      tagTextColor: '#000000',
+      additionalImages: [],
+      tagImage: null,
+      tagImageSize: { width: 50, height: 50 }
+    });
+    setCustomIconImage(null);
+  };
+
+  // --- EDIT MARKER FUNCTION ---
+  const handleEditMarker = (marker: any) => {
+    setEditingMarker(marker);
+    setPendingMarker(null);
+    setEditorMode(false);
+    
+    // Pre-fill the form with existing marker data
+    setEditorForm({
+      id: marker.id,
+      grid: marker.grid,
+      customField: marker.customField || '',
+      category: marker.category || '',
+      subCategory: marker.subCategory || '',
+      iconSlots: marker.iconSlots || [],
+      title: marker.title || '',
+      description: marker.description || '',
+      hashtags: Array.isArray(marker.hashtags) ? marker.hashtags.join(', ') : (marker.hashtags || ''),
+      descriptionImage: marker.descriptionImage || null,
+      // New fields for tag customization
+      tagBackground: marker.tagBackground || '#ffffff',
+      tagBorderColor: marker.tagBorderColor || '#000000',
+      tagTextColor: marker.tagTextColor || '#000000',
+      additionalImages: marker.additionalImages || [],
+      tagImage: marker.tagImage || null,
+      tagImageSize: marker.tagImageSize || { width: 50, height: 50 }
+    });
+    
+    // Set custom icon if exists
+    if (marker.iconSlots?.[0]?.icon && !marker.iconSlots[0].icon.includes('/markers/')) {
+      setCustomIconImage(marker.iconSlots[0].icon);
+    } else {
+      setCustomIconImage(null);
+    }
+    
+    // Show the marker editor if it's not already visible
+    setShowMarkerEditor(true);
+  };
+
+  // --- SAVE EDITED MARKER FUNCTION ---
+  const handleSaveEditedMarker = () => {
+    if (!editingMarker) return;
+
+    // Get the current icon
+    const mainIcon = editorForm.iconSlots[0]?.icon || '/markers/Simple Marker.png';
+    
+    // Process hashtags
+    const hashtagsArr = editorForm.hashtags ? 
+      editorForm.hashtags.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+
+    // Process additional images
+    const additionalImages = editorForm.additionalImages || [];
+
+    // Build popup HTML
+    const popupHtml = generatePopupHtml(
+      editorForm.id,
+      mainIcon,
+      editorForm.title,
+      editorForm.description,
+      hashtagsArr,
+      editorForm.descriptionImage,
+      editorForm.tagBackground,
+      editorForm.tagBorderColor,
+      editorForm.tagTextColor,
+      additionalImages,
+      editorForm.tagImage,
+      editorForm.tagImageSize
+    );
+
+    // Create updated marker
+    const updatedMarker = {
+      ...editingMarker,
+      id: editorForm.id,
+      grid: editorForm.grid,
+      customField: editorForm.customField,
+      category: editorForm.category,
+      subCategory: editorForm.subCategory,
+      iconSlots: [{
+        icon: mainIcon,
+        title: editorForm.title,
+        description: editorForm.description,
+        subCategory: editorForm.subCategory,
+        hashtags: editorForm.hashtags,
+        descriptionImage: editorForm.descriptionImage
+      }],
+      title: editorForm.title,
+      description: editorForm.description,
+      hashtags: hashtagsArr,
+      descriptionImage: editorForm.descriptionImage,
+      // New properties for tag customization
+      tagBackground: editorForm.tagBackground,
+      tagBorderColor: editorForm.tagBorderColor,
+      tagTextColor: editorForm.tagTextColor,
+      additionalImages: additionalImages,
+      tagImage: editorForm.tagImage,
+      tagImageSize: editorForm.tagImageSize,
+      // Update popup with new styling
+      popup: popupHtml,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Update the custom markers list
+    const updatedMarkers = customMarkers.map(marker => 
+      marker.id === editingMarker.id ? updatedMarker : marker
+    );
+    
+    handleSaveCustomMarkers(updatedMarkers);
+    
+    // Reset editing state
+    setEditingMarker(null);
+    setEditorForm({
+      id: '',
+      grid: '',
+      customField: '',
+      category: '',
+      subCategory: '',
+      iconSlots: [],
+      title: '',
+      description: '',
+      hashtags: '',
+      descriptionImage: null,
+      tagBackground: '#ffffff',
+      tagBorderColor: '#000000',
+      tagTextColor: '#000000',
+      additionalImages: [],
+      tagImage: null,
+      tagImageSize: { width: 50, height: 50 }
+    });
+    setCustomIconImage(null);
+  };
+
+  // --- CANCEL EDIT FUNCTION ---
+  const handleCancelEdit = () => {
+    setEditingMarker(null);
+    setEditorForm({
+      id: '',
+      grid: '',
+      customField: '',
+      category: '',
+      subCategory: '',
+      iconSlots: [],
+      title: '',
+      description: '',
+      hashtags: '',
+      descriptionImage: null,
+      tagBackground: '#ffffff',
+      tagBorderColor: '#000000',
+      tagTextColor: '#000000',
+      additionalImages: [],
+      tagImage: null,
+      tagImageSize: { width: 50, height: 50 }
     });
     setCustomIconImage(null);
   };
@@ -565,6 +830,9 @@ export default function MapPage() {
   const handleRemoveMarker = (markerId: string) => {
     const updatedList = customMarkers.filter(marker => marker.id !== markerId);
     handleSaveCustomMarkers(updatedList);
+    if (editingMarker && editingMarker.id === markerId) {
+      handleCancelEdit();
+    }
   };
 
   // --- REMOVE PENDING MARKER FUNCTION ---
@@ -580,23 +848,120 @@ export default function MapPage() {
       title: '',
       description: '',
       hashtags: '',
-      descriptionImage: null
+      descriptionImage: null,
+      tagBackground: '#ffffff',
+      tagBorderColor: '#000000',
+      tagTextColor: '#000000',
+      additionalImages: [],
+      tagImage: null,
+      tagImageSize: { width: 50, height: 50 }
     });
     setCustomIconImage(null);
   };
 
   // --- EXPORT JSON FUNCTION ---
   const handleExportJson = () => {
+    // Export only custom markers (not the loaded ones)
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customMarkers, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "markers_export.json");
+    downloadAnchorNode.setAttribute("download", "custom_markers_export.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
 
-  // [Rest of the useEffect for map initialization remains the same...]
+  // --- ADD ADDITIONAL IMAGE FUNCTION ---
+  const handleAddAdditionalImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setEditorForm((prev: any) => ({
+        ...prev,
+        additionalImages: [
+          ...(prev.additionalImages || []),
+          {
+            url: dataUrl,
+            caption: '',
+            width: 150,
+            height: 150
+          }
+        ]
+      }));
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  // --- REMOVE ADDITIONAL IMAGE FUNCTION ---
+  const handleRemoveAdditionalImage = (index: number) => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      additionalImages: prev.additionalImages.filter((_: any, i: number) => i !== index)
+    }));
+  };
+
+  // --- UPDATE IMAGE CAPTION FUNCTION ---
+  const handleUpdateImageCaption = (index: number, caption: string) => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      additionalImages: prev.additionalImages.map((img: any, i: number) =>
+        i === index ? { ...img, caption } : img
+      )
+    }));
+  };
+
+  // --- UPLOAD TAG IMAGE FUNCTION ---
+  const handleTagImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 1 * 1024 * 1024) {
+      alert('File size must be less than 1MB for tag image');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setEditorForm((prev: any) => ({
+        ...prev,
+        tagImage: dataUrl,
+        tagImageSize: { width: 50, height: 50 }
+      }));
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  // --- REMOVE TAG IMAGE FUNCTION ---
+  const handleRemoveTagImage = () => {
+    setEditorForm((prev: any) => ({
+      ...prev,
+      tagImage: null,
+      tagImageSize: { width: 50, height: 50 }
+    }));
+  };
+
+  // Map initialization
   useEffect(() => {
     if (mapRef.current && typeof window !== "undefined" && !mapInstanceRef.current) {
       ;(async () => {
@@ -646,7 +1011,7 @@ export default function MapPage() {
         setZoomLevel(map.getZoom())
       })
 
-      // [Rest of the lights logic...]
+      // Lights logic
       if (redLightRef.current && greenLightRef.current) {
         redLightRef.current.style.opacity = "0.1"
         greenLightRef.current.style.opacity = "0.8"
@@ -879,6 +1244,27 @@ export default function MapPage() {
         ></div>
 
         <div className={`${styles.pdaScreen} ${!pdaOn ? styles.pdaScreenOffVisible : ''}`}>
+          {/* Loading indicator for markers */}
+          {isLoadingMarkers && (
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: 'rgba(0,0,0,0.8)',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px'
+            }}>
+              <Loader2 size={16} className="animate-spin" />
+              Loading markers...
+            </div>
+          )}
+          
           {/* UPDATED: Added ID for cursor manipulation */}
           <div ref={mapRef} id="map-container-div" className={styles.map} aria-hidden={!pdaOn}></div>
           
@@ -938,6 +1324,9 @@ export default function MapPage() {
               <div className={styles.legendMenu}>
                 <div className={styles.legendMenuHeader}>
                   <h3>Legend Marks</h3>
+                  <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>
+                    Loaded: {loadedMarkers.length} markers
+                  </div>
                 </div>
                 <ul className={styles.legendMenuList}>
                   {Object.entries(legendCategories).map(([categoryName, categoryData]) => (
@@ -1191,6 +1580,25 @@ export default function MapPage() {
                 )}
               </div>
             </div>
+            
+            {/* Map Info Section */}
+            <div className={styles.wtloMenuSection}>
+              <div className={styles.wtloInfoBox}>
+                <h5>Current Map Info</h5>
+                <div className={styles.wtloInfoRow}>
+                  <span>Map:</span>
+                  <span>{availableMaps.find(m => m.file === currentMap)?.displayName || 'Unknown'}</span>
+                </div>
+                <div className={styles.wtloInfoRow}>
+                  <span>Loaded Markers:</span>
+                  <span>{loadedMarkers.length}</span>
+                </div>
+                <div className={styles.wtloInfoRow}>
+                  <span>Custom Markers:</span>
+                  <span>{customMarkers.length}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1206,9 +1614,9 @@ export default function MapPage() {
           top: `${markerEditorPosition.y}px`,
           cursor: isMarkerEditorDragging ? 'grabbing' : 'default',
           zIndex: 10010,
-          minWidth: '320px',
-          maxWidth: '340px',
-          maxHeight: '85vh',
+          minWidth: '360px',
+          maxWidth: '400px',
+          maxHeight: '90vh',
           overflow: 'hidden',
           borderRadius: '8px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.8)'
@@ -1246,32 +1654,36 @@ export default function MapPage() {
               <div style={{ 
                 width: '24px', 
                 height: '24px', 
-                background: '#4CAF50', 
+                background: editingMarker ? '#FF9800' : '#4CAF50', 
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <span style={{ fontSize: '12px', fontWeight: 'bold' }}>0.2</span>
+                <span style={{ fontSize: '12px', fontWeight: 'bold' }}>0.3</span>
               </div>
-              <h3 style={{ margin: 0, fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>Marker Editor</h3>
+              <h3 style={{ margin: 0, fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>
+                {editingMarker ? 'Edit Marker' : pendingMarker ? 'New Marker' : 'Marker Editor'}
+              </h3>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={() => setEditorMode(!editorMode)}
-                style={{
-                  background: editorMode ? '#4CAF50' : '#333',
-                  color: 'white',
-                  border: '1px solid #555',
-                  padding: '4px 8px',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
-                  fontSize: '10px',
-                  fontWeight: 'bold'
-                }}
-              >
-                {editorMode ? 'EDIT ON' : 'EDIT OFF'}
-              </button>
+              {!editingMarker && (
+                <button
+                  onClick={() => setEditorMode(!editorMode)}
+                  style={{
+                    background: editorMode ? '#4CAF50' : '#333',
+                    color: 'white',
+                    border: '1px solid #555',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    fontSize: '10px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {editorMode ? 'EDIT ON' : 'EDIT OFF'}
+                </button>
+              )}
               <div style={{ fontSize: '9px', color: '#999', background: 'rgba(0, 0, 0, 0.3)', padding: '2px 6px', borderRadius: '3px', border: '1px solid #444' }}>
                 ↕ Drag
               </div>
@@ -1286,10 +1698,10 @@ export default function MapPage() {
             flexDirection: 'column', 
             gap: '12px',
             overflowY: 'auto',
-            maxHeight: 'calc(85vh - 60px)'
+            maxHeight: 'calc(90vh - 60px)'
           }}>
             
-            {editorMode && (
+            {editorMode && !editingMarker && (
               <div style={{ 
                 background: 'rgba(255,255,255,0.05)', 
                 padding: '8px', 
@@ -1303,8 +1715,27 @@ export default function MapPage() {
               </div>
             )}
 
-            {/* FORM - Only show when there's a pending marker */}
-            {editorMode && pendingMarker && (
+            {/* EDITING NOTICE */}
+            {editingMarker && (
+              <div style={{ 
+                background: 'rgba(255,152,0,0.1)', 
+                padding: '8px', 
+                borderRadius: '4px',
+                textAlign: 'center',
+                fontSize: '11px',
+                color: '#FF9800',
+                border: '1px solid rgba(255,152,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}>
+                <Edit2 size={12} /> Editing: {editingMarker.title || editingMarker.id}
+              </div>
+            )}
+
+            {/* FORM - Show when there's a pending marker or editing a marker */}
+            {(editorMode && pendingMarker) || editingMarker ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 
                 {/* ID and Grid Row */}
@@ -1734,51 +2165,458 @@ export default function MapPage() {
                   />
                 </div>
 
+                {/* TAG CUSTOMIZATION SECTION */}
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #333' }}>
+                  <h4 style={{ fontSize: '13px', color: '#ccc', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Palette size={14} /> Tag Customization
+                  </h4>
+                  
+                  {/* Tag Background Color */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                      Tag Background:
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="color"
+                        value={editorForm.tagBackground}
+                        onChange={(e) => setEditorForm({...editorForm, tagBackground: e.target.value})}
+                        style={{
+                          width: '40px',
+                          height: '30px',
+                          cursor: 'pointer',
+                          border: 'none',
+                          borderRadius: '4px'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={editorForm.tagBackground}
+                        onChange={(e) => setEditorForm({...editorForm, tagBackground: e.target.value})}
+                        style={{
+                          flex: 1,
+                          background: '#222',
+                          color: '#fff',
+                          border: '1px solid #444',
+                          padding: '6px 8px',
+                          fontSize: '12px',
+                          borderRadius: '4px'
+                        }}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tag Border Color */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                      Tag Border Color:
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="color"
+                        value={editorForm.tagBorderColor}
+                        onChange={(e) => setEditorForm({...editorForm, tagBorderColor: e.target.value})}
+                        style={{
+                          width: '40px',
+                          height: '30px',
+                          cursor: 'pointer',
+                          border: 'none',
+                          borderRadius: '4px'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={editorForm.tagBorderColor}
+                        onChange={(e) => setEditorForm({...editorForm, tagBorderColor: e.target.value})}
+                        style={{
+                          flex: 1,
+                          background: '#222',
+                          color: '#fff',
+                          border: '1px solid #444',
+                          padding: '6px 8px',
+                          fontSize: '12px',
+                          borderRadius: '4px'
+                        }}
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tag Text Color */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                      Tag Text Color:
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="color"
+                        value={editorForm.tagTextColor}
+                        onChange={(e) => setEditorForm({...editorForm, tagTextColor: e.target.value})}
+                        style={{
+                          width: '40px',
+                          height: '30px',
+                          cursor: 'pointer',
+                          border: 'none',
+                          borderRadius: '4px'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={editorForm.tagTextColor}
+                        onChange={(e) => setEditorForm({...editorForm, tagTextColor: e.target.value})}
+                        style={{
+                          flex: 1,
+                          background: '#222',
+                          color: '#fff',
+                          border: '1px solid #444',
+                          padding: '6px 8px',
+                          fontSize: '12px',
+                          borderRadius: '4px'
+                        }}
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tag Image Upload */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '4px', display: 'block' }}>
+                      Tag Small Image:
+                      <span style={{ color: '#888', fontSize: '10px', marginLeft: '4px' }}>
+                        (Will be displayed in the tag)
+                      </span>
+                    </label>
+                    
+                    {editorForm.tagImage ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img 
+                          src={editorForm.tagImage} 
+                          alt="Tag" 
+                          style={{ 
+                            width: `${editorForm.tagImageSize?.width || 50}px`, 
+                            height: `${editorForm.tagImageSize?.height || 50}px`, 
+                            objectFit: 'contain',
+                            borderRadius: '4px',
+                            border: '1px solid #555'
+                          }} 
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '10px', color: '#4CAF50', marginBottom: '4px' }}>
+                            Tag Image Added
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              onClick={() => setShowImageSizeOptions(!showImageSizeOptions)}
+                              style={{
+                                background: '#555',
+                                color: 'white',
+                                border: 'none',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Resize
+                            </button>
+                            <button
+                              onClick={handleRemoveTagImage}
+                              style={{
+                                background: '#f44336',
+                                color: 'white',
+                                border: 'none',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          type="file"
+                          id="tag-image-upload"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={handleTagImageUpload}
+                        />
+                        <button
+                          onClick={() => document.getElementById('tag-image-upload')?.click()}
+                          style={{
+                            background: '#2196F3',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            width: '100%'
+                          }}
+                        >
+                          <Upload size={14} /> Upload Tag Image
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Image Size Options */}
+                  {showImageSizeOptions && (
+                    <div style={{ 
+                      background: 'rgba(0,0,0,0.3)', 
+                      padding: '12px', 
+                      borderRadius: '4px',
+                      marginBottom: '12px',
+                      border: '1px solid #444'
+                    }}>
+                      <div style={{ fontSize: '11px', color: '#ccc', marginBottom: '8px' }}>
+                        Image Size (Tag)
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: '10px', color: '#999' }}>Width: {editorForm.tagImageSize?.width || 50}px</label>
+                          <input
+                            type="range"
+                            min="20"
+                            max="150"
+                            value={editorForm.tagImageSize?.width || 50}
+                            onChange={(e) => setEditorForm((prev: any) => ({
+                              ...prev,
+                              tagImageSize: { ...prev.tagImageSize, width: parseInt(e.target.value) }
+                            }))}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: '10px', color: '#999' }}>Height: {editorForm.tagImageSize?.height || 50}px</label>
+                          <input
+                            type="range"
+                            min="20"
+                            max="150"
+                            value={editorForm.tagImageSize?.height || 50}
+                            onChange={(e) => setEditorForm((prev: any) => ({
+                              ...prev,
+                              tagImageSize: { ...prev.tagImageSize, height: parseInt(e.target.value) }
+                            }))}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ 
+                        fontSize: '10px', 
+                        color: '#666', 
+                        marginTop: '8px',
+                        textAlign: 'center'
+                      }}>
+                        Recommended: 50-100px for tag images
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Additional Images Section */}
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#ccc', marginBottom: '8px', display: 'block' }}>
+                      Additional Images:
+                      <span style={{ color: '#888', fontSize: '10px', marginLeft: '4px' }}>
+                        (Displayed in the marker popup)
+                      </span>
+                    </label>
+                    
+                    <input
+                      type="file"
+                      id="additional-image-upload"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleAddAdditionalImage}
+                    />
+                    <button
+                      onClick={() => document.getElementById('additional-image-upload')?.click()}
+                      style={{
+                        background: '#673AB7',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        width: '100%',
+                        marginBottom: '12px'
+                      }}
+                    >
+                      <ImageIcon size={14} /> Add Additional Image
+                    </button>
+
+                    {/* Display additional images */}
+                    {editorForm.additionalImages && editorForm.additionalImages.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                        {editorForm.additionalImages.map((img: any, index: number) => (
+                          <div key={index} style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '8px',
+                            borderRadius: '4px',
+                            border: '1px solid #444'
+                          }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <img 
+                                src={img.url} 
+                                alt={`Additional ${index + 1}`}
+                                style={{
+                                  width: '60px',
+                                  height: '60px',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px'
+                                }}
+                              />
+                              <div style={{ flex: 1 }}>
+                                <input
+                                  type="text"
+                                  value={img.caption || ''}
+                                  onChange={(e) => handleUpdateImageCaption(index, e.target.value)}
+                                  placeholder="Image caption..."
+                                  style={{
+                                    width: '100%',
+                                    background: '#222',
+                                    color: '#fff',
+                                    border: '1px solid #444',
+                                    padding: '4px 6px',
+                                    fontSize: '11px',
+                                    borderRadius: '4px',
+                                    marginBottom: '4px'
+                                  }}
+                                />
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <div style={{ fontSize: '10px', color: '#888' }}>
+                                    Size: {img.width || 150} × {img.height || 150}px
+                                  </div>
+                                  <button
+                                    onClick={() => handleRemoveAdditionalImage(index)}
+                                    style={{
+                                      background: '#f44336',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '2px 6px',
+                                      borderRadius: '3px',
+                                      fontSize: '10px',
+                                      cursor: 'pointer',
+                                      marginLeft: 'auto'
+                                    }}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button 
-                    onClick={handleSaveMarker}
-                    style={{
-                      flex: 1,
-                      background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px',
-                      cursor: 'pointer',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <Save size={14} /> Save
-                  </button>
-                  <button 
-                    onClick={handleRemovePendingMarker}
-                    style={{
-                      flex: 1,
-                      background: 'linear-gradient(135deg, #f44336 0%, #c62828 100%)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px',
-                      cursor: 'pointer',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <XCircle size={14} /> Cancel
-                  </button>
+                  {editingMarker ? (
+                    <>
+                      <button 
+                        onClick={handleSaveEditedMarker}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Save size={14} /> Update Marker
+                      </button>
+                      <button 
+                        onClick={handleCancelEdit}
+                        style={{
+                          background: '#666',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <X size={14} /> Cancel Edit
+                      </button>
+                    </>
+                  ) : pendingMarker ? (
+                    <>
+                      <button 
+                        onClick={handleSaveMarker}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Save size={14} /> Save Marker
+                      </button>
+                      <button 
+                        onClick={handleRemovePendingMarker}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #f44336 0%, #c62828 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <XCircle size={14} /> Cancel
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Saved Markers Section */}
             {customMarkers.length > 0 && (
@@ -1827,8 +2665,36 @@ export default function MapPage() {
                           <span style={{ fontSize: '10px', color: '#aaa' }}>
                             {marker.grid} • {marker.category}
                           </span>
+                          {marker.tagBackground && (
+                            <div style={{ 
+                              display: 'inline-block',
+                              width: '12px', 
+                              height: '12px', 
+                              backgroundColor: marker.tagBackground,
+                              border: `1px solid ${marker.tagBorderColor || '#000'}`,
+                              borderRadius: '2px',
+                              marginTop: '2px'
+                            }} title="Tag Color" />
+                          )}
                         </div>
                         <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            onClick={() => handleEditMarker(marker)}
+                            style={{
+                              background: '#2196F3',
+                              color: 'white',
+                              border: 'none',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}
+                          >
+                            <Edit2 size={10} /> Edit
+                          </button>
                           <button 
                             onClick={() => setDisclosedMarkerId(disclosedMarkerId === marker.id ? null : marker.id)}
                             style={{
@@ -1893,7 +2759,7 @@ export default function MapPage() {
             )}
 
             {/* Empty State */}
-            {!editorMode && !pendingMarker && customMarkers.length === 0 && (
+            {!editorMode && !pendingMarker && !editingMarker && customMarkers.length === 0 && (
               <div style={{ 
                 textAlign: 'center', 
                 padding: '24px 0', 
@@ -1903,6 +2769,28 @@ export default function MapPage() {
                 Turn on Edit Mode and click on the map to create markers
               </div>
             )}
+            
+            {/* Map Info */}
+            <div style={{ 
+              marginTop: '16px', 
+              paddingTop: '16px', 
+              borderTop: '1px solid #333',
+              fontSize: '11px',
+              color: '#888'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span>Current Map:</span>
+                <span>{availableMaps.find(m => m.file === currentMap)?.displayName || 'Unknown'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span>JSON File:</span>
+                <span>{availableMaps.find(m => m.file === currentMap)?.jsonFile || 'Default.json'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Loaded Markers:</span>
+                <span>{loadedMarkers.length}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
